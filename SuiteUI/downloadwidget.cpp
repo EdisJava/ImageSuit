@@ -1,5 +1,7 @@
 #include "DownloadWidget.h"
+#include "qtimer.h"
 #include "ui_DownloadWidget.h"
+#include "ImageCardDelegate.h" // Importante para el diseño de tarjetas
 #include <QMessageBox>
 #include <QDebug>
 
@@ -7,25 +9,28 @@ DownloadWidget::DownloadWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::DownloadWidget)
     , m_model(new QStandardItemModel(this))
+    , m_currentIndex(-1) // Inicializamos a -1
 {
     ui->setupUi(this);
 
+    // --- Configuración de Galería de Tarjetas ---
     ui->DownloadPictureList->setModel(m_model);
-    ui->DownloadPictureList->setIconSize(QSize(100, 100)); // tamaño miniaturas
+    ui->DownloadPictureList->setItemDelegate(new ImageCardDelegate(this));
     ui->DownloadPictureList->setViewMode(QListView::IconMode);
     ui->DownloadPictureList->setResizeMode(QListView::Adjust);
-    ui->DownloadPictureList->setGridSize(QSize(120, 120)); // ajusta tamaño de celda
-    ui->DownloadPictureList->setIconSize(QSize(100, 100)); // tamaño de la imagen
-
+    ui->DownloadPictureList->setSpacing(10);
+    ui->DownloadPictureList->setMovement(QListView::Static);
 
     ui->progressBar->setValue(0);
     ui->DownloadButton->setEnabled(false);
 
-    connect(ui->DownloadPictureList->selectionModel(),&QItemSelectionModel::currentChanged,this,&DownloadWidget::onSelectionChanged);
-    connect(ui->DownloadButton, &QPushButton::clicked,this, &DownloadWidget::onDownloadClicked);
-    connect(ui->infoButton, &QPushButton::clicked,this, &DownloadWidget::onInfoClicked);
-    connect(m_pictureManager, &PictureManager::downloadProgress,this, &DownloadWidget::onDownloadProgress);
-    connect(m_pictureManager, &PictureManager::pictureDownloaded,this, &DownloadWidget::onPictureDownloaded);
+    // Conectar selección corregida
+    connect(ui->DownloadPictureList->selectionModel(),
+            &QItemSelectionModel::currentChanged,
+            this, &DownloadWidget::onSelectionChanged);
+
+    connect(ui->DownloadButton, &QPushButton::clicked, this, &DownloadWidget::onDownloadClicked);
+    connect(ui->infoButton, &QPushButton::clicked, this, &DownloadWidget::onInfoClicked);
 }
 
 DownloadWidget::~DownloadWidget()
@@ -37,45 +42,51 @@ void DownloadWidget::setPictureManager(PictureManager *manager)
 {
     m_pictureManager = manager;
 
-    connect(manager, &PictureManager::downloadProgress,
-            this, &DownloadWidget::onDownloadProgress);
-
-    connect(manager, &PictureManager::pictureDownloaded,
-            this, &DownloadWidget::onPictureDownloaded);
+    // Conectar señales del manager
+    connect(manager, &PictureManager::downloadProgress, this, &DownloadWidget::onDownloadProgress);
+    connect(manager, &PictureManager::pictureDownloaded, this, &DownloadWidget::onPictureDownloaded);
 
     refreshList();
 }
 
-void DownloadWidget::refreshList()
-{
+void DownloadWidget::refreshList() {
     if (!m_pictureManager) return;
 
     m_model->clear();
+    m_visibleIndexes.clear();
+    m_currentIndex = -1;
 
     const QList<Picture>& pics = m_pictureManager->toDownload();
 
-    for (const Picture& pic : pics) {
+    for (int i = 0; i < pics.size(); ++i) {
+        const Picture& pic = pics[i];
+
         QStandardItem* item = new QStandardItem(pic.nombre());
 
-        QPixmap pixmap;
-        if (!pixmap.load(pic.url())) {
-            qDebug() << "No se pudo cargar la imagen:" << pic.url();
-        } else {
-            item->setIcon(QIcon(pixmap));
+        // El delegado dibujará la tarjeta con esta imagen
+        QPixmap pix(pic.url());
+        if (!pix.isNull()) {
+            item->setData(QIcon(pix), Qt::DecorationRole);
         }
 
         m_model->appendRow(item);
+        m_visibleIndexes.append(i); // Guardamos el índice real del catálogo
     }
 
-    ui->progressBar->setValue(0);
     ui->DownloadButton->setEnabled(false);
-    m_currentIndex = -1;
 }
 
 void DownloadWidget::onSelectionChanged(const QModelIndex &current)
 {
-    m_currentIndex = current.row();
-    if (m_currentIndex < 0) return;
+    int viewRow = current.row();
+    if (viewRow < 0 || viewRow >= m_visibleIndexes.size()) {
+        m_currentIndex = -1;
+        ui->DownloadButton->setEnabled(false);
+        return;
+    }
+
+    // TRADUCCIÓN de índice de vista a índice real
+    m_currentIndex = m_visibleIndexes[viewRow];
 
     const Picture& pic = m_pictureManager->toDownload().at(m_currentIndex);
     ui->nameLabel->setText(pic.nombre());
@@ -89,7 +100,7 @@ void DownloadWidget::onDownloadClicked()
     ui->progressBar->setValue(0);
     ui->DownloadButton->setEnabled(false);
 
-    // Inicia simulación de descarga
+    // Inicia la descarga usando el índice real mapeado
     m_pictureManager->downloadPicture(m_currentIndex);
 }
 
@@ -98,10 +109,7 @@ void DownloadWidget::onInfoClicked()
     if (!m_pictureManager || m_currentIndex < 0) return;
 
     const Picture& pic = m_pictureManager->toDownload().at(m_currentIndex);
-
-    QMessageBox::information(this,
-                             pic.nombre(),
-                             pic.descripcion());
+    QMessageBox::information(this, pic.nombre(), pic.descripcion());
 }
 
 void DownloadWidget::onDownloadProgress(int progress, const QString &pictureName)
@@ -109,6 +117,7 @@ void DownloadWidget::onDownloadProgress(int progress, const QString &pictureName
     if (m_currentIndex < 0) return;
 
     const Picture& pic = m_pictureManager->toDownload().at(m_currentIndex);
+    // Solo actualizamos la barra si el nombre coincide con el seleccionado
     if (pic.nombre() == pictureName) {
         ui->progressBar->setValue(progress);
     }
@@ -116,14 +125,13 @@ void DownloadWidget::onDownloadProgress(int progress, const QString &pictureName
 
 void DownloadWidget::onPictureDownloaded(const Picture &picture)
 {
-    // Reiniciamos la progress bar
-    ui->progressBar->setValue(0);
-    ui->DownloadButton->setEnabled(true);
+    Q_UNUSED(picture);
+    ui->progressBar->setValue(100); // Aseguramos que llegue al final
 
-    // Refrescamos la lista de “para descargar”
-    refreshList();
-
-    // Avisamos a MainWindow / DownloadedWidget
-    emit pictureDownloaded();
+    // Pequeña pausa estética antes de limpiar
+    QTimer::singleShot(500, this, [this](){
+        ui->progressBar->setValue(0);
+        refreshList(); // Esto actualiza la galería quitando la foto descargada
+        emit pictureDownloaded(); // Avisa a MainWindow
+    });
 }
-

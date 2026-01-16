@@ -271,6 +271,15 @@ QProgressBar::chunk {
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="resizeMode">
+      <enum>QListView::ResizeMode::Adjust</enum>
+     </property>
+     <property name="spacing">
+      <number>12</number>
+     </property>
+     <property name="viewMode">
+      <enum>QListView::ViewMode::IconMode</enum>
+     </property>
     </widget>
    </item>
   </layout>
