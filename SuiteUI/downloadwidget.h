@@ -34,7 +34,7 @@ private slots:
 private:
     Ui::DownloadWidget *ui;
     PictureManager* m_pictureManager = nullptr;
-
+    QList<int> m_visibleIndexes; // Esto quitará el error de "not declared in this scope"
     QStandardItemModel* m_model;  // <-- cambio aquí
     int m_currentIndex = -1;
 };

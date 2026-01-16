@@ -1,54 +1,59 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "downloadwidget.h"
-#include "downloadedwidget.h"
+#include <QStandardPaths>
 #include <QDir>
-#include "imageviewer.h"
+#include <QFileInfo>
+#include <QDebug>
+#include <QCloseEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , imageViewer(new ImageViewer(this))
-
 {
     ui->setupUi(this);
 
-    QString projectPath = QDir("C:/Users/Edgar/Documents/ImageSuite").absolutePath();
+    // 1. Obtener ruta genérica a Documentos/ImageSuite
+    QString docsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    QString projectPath = QDir(docsPath).filePath("ImageSuite");
+
+    // 2. Crear carpetas si no existen
+    QDir dir(projectPath);
+    if (!dir.exists()) dir.mkpath(".");
+    if (!dir.exists("images")) dir.mkdir("images");
+
+    // 3. Configurar Manager con la ruta base antes de cargar nada
+    m_pictureManager.setBasePath(projectPath);
+
     QString catalogPath = QDir(projectPath).filePath("download.json");
     QString downloadedPath = QDir(projectPath).filePath("downloaded.json");
 
-    qDebug() << "Ruta catalogo:" << catalogPath
-             << "Existe?" << QFileInfo(catalogPath).exists();
+    qDebug() << "Ruta de trabajo:" << projectPath;
 
+    // 4. Cargar datos
     m_pictureManager.loadCatalog(catalogPath);
     m_pictureManager.loadDownloaded(downloadedPath);
 
-    // 🔹 Cargar catálogo y descargadas
-    m_pictureManager.loadCatalog(catalogPath);
-    m_pictureManager.loadDownloaded(downloadedPath);
-
-    // 🔹 Pasamos el core a ambos widgets
+    // 5. Pasar Manager a los widgets hijos
     ui->downloadWidget->setPictureManager(&m_pictureManager);
     ui->downloadedWidget->setPictureManager(&m_pictureManager);
 
-    // 🔹 Sincronización entre widgets
-    connect(ui->downloadWidget, &DownloadWidget::pictureDownloaded,ui->downloadedWidget, &DownloadedWidget::refreshList);
+    // 6. Conexiones de Sincronización
+    connect(ui->downloadWidget, &DownloadWidget::pictureDownloaded, ui->downloadedWidget, &DownloadedWidget::refreshList);
     connect(ui->downloadedWidget, &DownloadedWidget::pictureDeleted, ui->downloadWidget, &DownloadWidget::refreshList);
-    connect(ui->downloadedWidget, &DownloadedWidget::pictureDeleted,ui->downloadWidget, &DownloadWidget::refreshList);
-    connect(ui->downloadedWidget, &DownloadedWidget::openPicture,imageViewer, &ImageViewer::showPicture);
+    connect(ui->downloadedWidget, &DownloadedWidget::openPicture, imageViewer, &ImageViewer::showPicture);
 
-    // 🔹 Carga inicial
+    // 7. Carga inicial de UI
     ui->downloadWidget->refreshList();
     ui->downloadedWidget->refreshList();
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
-{
-    m_pictureManager.saveDownloaded("C:/Users/Edgar/Documents/ImageSuite/downloaded.json");
-    QMainWindow::closeEvent(event);
+void MainWindow::closeEvent(QCloseEvent *event) {
+    // Guarda automáticamente al cerrar usando la ruta genérica
+    m_pictureManager.saveDownloaded(m_pictureManager.getDownloadedJsonPath());
+    event->accept();
 }

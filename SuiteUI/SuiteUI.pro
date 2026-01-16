@@ -11,6 +11,7 @@ CONFIG += c++17
 SOURCES += \
     downloadedwidget.cpp \
     downloadwidget.cpp \
+    imagecarddelegate.cpp \
     imageviewer.cpp \
     main.cpp \
     mainwindow.cpp
@@ -18,12 +19,14 @@ SOURCES += \
 HEADERS += \
     downloadedwidget.h \
     downloadwidget.h \
+    imagecarddelegate.h \
     imageviewer.h \
     mainwindow.h
 
 FORMS += \
     downloadedwidget.ui \
     downloadwidget.ui \
+    imagecarddelegate.ui \
     imageviewer.ui \
     mainwindow.ui
 
