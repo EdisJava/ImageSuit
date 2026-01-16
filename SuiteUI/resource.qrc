@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>info.png</file>
+        <file>open.png</file>
+        <file>favorito.png</file>
+        <file>download.png</file>
+        <file>delete.png</file>
+        <file>back.png</file>
+        <file>find.png</file>
+    </qresource>
+</RCC>
