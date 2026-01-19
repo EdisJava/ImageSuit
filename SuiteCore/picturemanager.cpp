@@ -107,3 +107,6 @@ QList<Picture> PictureManager::toDownload() const {
     for (const Picture& p : m_pictures) if (!p.descargada()) list.append(p);
     return list;
 }
+const QList<Picture>& PictureManager::allPictures() const {
+    return m_pictures;
+}

@@ -36,7 +36,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QPushButton" name="DownloadButton">
+       <widget class="QPushButton" name="DownloadAllButton">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -102,22 +102,10 @@ QPushButton:pressed {
     padding: 6px; 
 }
 
-QPushButton:hover {
-    background-color: rgba(255, 165, 0, 0.2); /* naranja suave al pasar el cursor */
-    border-radius: 6px;
-}
-
-QPushButton:pressed {
-    background-color: rgba(255, 165, 0, 0.4);
-}
 </string>
         </property>
         <property name="text">
          <string/>
-        </property>
-        <property name="icon">
-         <iconset resource="resource.qrc">
-          <normaloff>:/icons/info.png</normaloff>:/icons/info.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -162,7 +150,7 @@ QPushButton:pressed {
         </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
-    background: transparent;
+	background: transparent;
     font-size: 16px;
     font-weight: bold;
     color: #333333;
@@ -202,7 +190,7 @@ QPushButton:pressed {
         </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
-    background: transparent;
+	background: transparent;
     font-size: 16px;
     font-weight: bold;
     color: #333333;

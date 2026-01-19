@@ -64,7 +64,7 @@
         </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
-    background: transparent;
+	background: transparent;
     font-size: 16px;
     font-weight: bold;
     color: #333333;
@@ -104,14 +104,14 @@
         </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
-    background: transparent;
+	background: transparent;
     font-size: 16px;
     font-weight: bold;
     color: #333333;
 }</string>
         </property>
         <property name="text">
-         <string/>
+         <string>lorem ipsum.png      </string>
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -144,7 +144,6 @@
         </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
-    background: transparent;
     font-size: 16px;
     font-weight: bold;
     color: #333333;
@@ -170,6 +169,11 @@
       </item>
       <item>
        <widget class="QRadioButton" name="radioButton">
+        <property name="styleSheet">
+         <string notr="true">QRadioButton{
+	background: transparent;
+}</string>
+        </property>
         <property name="text">
          <string>Show Favorites</string>
         </property>
@@ -205,7 +209,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QPushButton" name="OpenButton">
+       <widget class="QPushButton" name="toggleViewButton">
         <property name="minimumSize">
          <size>
           <width>50</width>
@@ -233,8 +237,7 @@ QPushButton:pressed {
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="resource.qrc">
-          <normaloff>:/icons/open.png</normaloff>:/icons/open.png</iconset>
+         <iconset theme="applications-development"/>
         </property>
         <property name="iconSize">
          <size>
@@ -258,23 +261,10 @@ QPushButton:pressed {
     border: none; /* sin marco */
     padding: 6px; 
 }
-
-QPushButton:hover {
-    background-color: rgba(255, 165, 0, 0.2); /* naranja suave al pasar el cursor */
-    border-radius: 6px;
-}
-
-QPushButton:pressed {
-    background-color: rgba(255, 165, 0, 0.4);
-}
 </string>
         </property>
         <property name="text">
          <string/>
-        </property>
-        <property name="icon">
-         <iconset resource="resource.qrc">
-          <normaloff>:/icons/favorito.png</normaloff>:/icons/favorito.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -299,22 +289,11 @@ QPushButton:pressed {
     padding: 6px; 
 }
 
-QPushButton:hover {
-    background-color: rgba(255, 165, 0, 0.2); /* naranja suave al pasar el cursor */
-    border-radius: 6px;
-}
 
-QPushButton:pressed {
-    background-color: rgba(255, 165, 0, 0.4);
-}
 </string>
         </property>
         <property name="text">
          <string/>
-        </property>
-        <property name="icon">
-         <iconset resource="resource.qrc">
-          <normaloff>:/icons/info.png</normaloff>:/icons/info.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -339,22 +318,10 @@ QPushButton:pressed {
     padding: 6px; 
 }
 
-QPushButton:hover {
-    background-color: rgba(255, 165, 0, 0.2); /* naranja suave al pasar el cursor */
-    border-radius: 6px;
-}
-
-QPushButton:pressed {
-    background-color: rgba(255, 165, 0, 0.4);
-}
 </string>
         </property>
         <property name="text">
          <string/>
-        </property>
-        <property name="icon">
-         <iconset resource="resource.qrc">
-          <normaloff>:/icons/delete.png</normaloff>:/icons/delete.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -405,7 +372,7 @@ QPushButton:pressed {
         </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
-    background: transparent;
+	background: transparent;
     font-size: 16px;
     font-weight: bold;
     color: #333333;
@@ -420,7 +387,7 @@ QPushButton:pressed {
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="lineEdit"/>
+       <widget class="QLineEdit" name="searchLineEdit"/>
       </item>
       <item>
        <widget class="QPushButton" name="searchButton">

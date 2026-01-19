@@ -1,64 +1,73 @@
 #include "ImageCardDelegate.h"
 #include <QPainter>
-#include <QStyleOptionViewItem>
+#include <QMouseEvent>
+
+void getRects(const QRect &cardRect, ImageCardDelegate::ViewMode mode, QRect &favR, QRect &infR, QRect &delR) {
+    QRect r = cardRect.adjusted(5, 5, -5, -5);
+    if (mode == ImageCardDelegate::Grid) {
+        favR = QRect(r.left() + 15, r.bottom() - 35, 30, 30);
+        infR = QRect(r.center().x() - 15, r.bottom() - 35, 30, 30);
+        delR = QRect(r.right() - 45, r.bottom() - 35, 30, 30);
+    } else {
+        int centerY = r.top() + (r.height() - 30) / 2;
+        delR = QRect(r.right() - 40, centerY, 30, 30);
+        infR = QRect(r.right() - 80, centerY, 30, 30);
+        favR = QRect(r.right() - 120, centerY, 30, 30);
+    }
+}
 
 void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
     painter->save();
-
-    painter->setRenderHint(QPainter::Antialiasing);
-    painter->setRenderHint(QPainter::SmoothPixmapTransform);
-    painter->setRenderHint(QPainter::TextAntialiasing);
-
+    painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     QRect rect = option.rect.adjusted(5, 5, -5, -5);
     bool isSelected = option.state & QStyle::State_Selected;
-    bool isHovered = option.state & QStyle::State_MouseOver;
-
-    QColor bgColor = QColor(255, 255, 255, 200);
-    QColor borderColor = QColor(200, 200, 200);
-    int borderWidth = 1;
-
-    if (isSelected) {
-        bgColor = QColor(255, 165, 0, 80);
-        borderColor = QColor(255, 140, 0);
-        borderWidth = 2;
-    } else if (isHovered) {
-        bgColor = QColor(255, 255, 255, 240);
-    }
-
-    painter->setBrush(bgColor);
-    painter->setPen(QPen(borderColor, borderWidth));
-    painter->drawRoundedRect(rect, 12, 12);
-
+    painter->setBrush(isSelected ? QColor(255, 165, 0, 40) : Qt::white);
+    painter->setPen(QPen(isSelected ? QColor(255, 140, 0) : QColor(200, 200, 200), 1));
+    painter->drawRoundedRect(rect, 10, 10);
+    QRect favR, infR, delR;
+    getRects(option.rect, m_mode, favR, infR, delR);
     QIcon icon = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
-    QRect imageArea = rect.adjusted(10, 10, -10, -45);
-
-    if (!icon.isNull()) {
-        QPixmap pixmap = icon.pixmap(imageArea.size());
-        int x = imageArea.left() + (imageArea.width() - pixmap.width()) / 2;
-        int y = imageArea.top() + (imageArea.height() - pixmap.height()) / 2;
-        painter->drawPixmap(x, y, pixmap);
+    if (m_mode == Grid) {
+        painter->drawPixmap(rect.adjusted(15, 15, -15, -85), icon.pixmap(150, 150));
+        painter->setPen(Qt::black);
+        painter->drawText(rect.left(), rect.bottom() - 65, rect.width(), 20, Qt::AlignCenter, index.data().toString());
     } else {
-        painter->setPen(QColor(150, 150, 150));
-        painter->drawText(imageArea, Qt::AlignCenter, "No Preview\nAvailable");
+        painter->drawPixmap(rect.left() + 10, rect.top() + 10, 60, 60, icon.pixmap(60, 60));
+        painter->setPen(Qt::black);
+        painter->drawText(rect.left() + 85, rect.top(), rect.width() - 250, rect.height(), Qt::AlignVCenter, index.data().toString());
     }
-
-    QString name = index.data(Qt::DisplayRole).toString();
-    QRect textArea = QRect(rect.left() + 5, rect.bottom() - 35, rect.width() - 10, 30);
-
-    QFont font = painter->font();
-    font.setBold(true);
-    font.setPointSize(9);
-    painter->setFont(font);
-    painter->setPen(QColor(40, 40, 40));
-
-    QString elidedName = painter->fontMetrics().elidedText(name, Qt::ElideRight, textArea.width());
-    painter->drawText(textArea, Qt::AlignCenter, elidedName);
-
+    painter->setBrush(QColor(240, 240, 240));
+    painter->drawEllipse(infR); painter->drawText(infR, Qt::AlignCenter, "i");
+    if (index.data(Qt::UserRole + 2).toBool()) {
+        painter->setBrush(QColor(255, 200, 200));
+        painter->drawEllipse(delR); painter->drawText(delR, Qt::AlignCenter, "X");
+    }
+    QVariant fav = index.data(Qt::UserRole + 1);
+    if (fav.isValid()) {
+        painter->setBrush(fav.toBool() ? Qt::yellow : Qt::white);
+        painter->drawEllipse(favR); painter->drawText(favR, Qt::AlignCenter, "★");
+    }
     painter->restore();
 }
 
+bool ImageCardDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index) {
+    QRect favR, infR, delR;
+    getRects(option.rect, m_mode, favR, infR, delR);
+    if (event->type() == QEvent::MouseButtonRelease) {
+        QMouseEvent *me = static_cast<QMouseEvent*>(event);
+        if (infR.contains(me->pos())) { emit infoRequested(index); return true; }
+        if (favR.contains(me->pos()) && index.data(Qt::UserRole + 1).isValid()) { emit favoriteToggled(index); return true; }
+        if (delR.contains(me->pos()) && index.data(Qt::UserRole + 2).toBool()) { emit deleteRequested(index); return true; }
+    }
+    if (event->type() == QEvent::MouseButtonDblClick) {
+        QMouseEvent *me = static_cast<QMouseEvent*>(event);
+        if (!infR.contains(me->pos()) && !favR.contains(me->pos()) && !delR.contains(me->pos())) {
+            emit doubleClicked(index); return true;
+        }
+    }
+    return false;
+}
+
 QSize ImageCardDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const {
-    Q_UNUSED(option);
-    Q_UNUSED(index);
-    return QSize(160, 190);
+    return (m_mode == List) ? QSize(option.rect.width(), 80) : QSize(170, 220);
 }
