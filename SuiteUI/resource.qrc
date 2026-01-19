@@ -7,5 +7,6 @@
         <file>delete.png</file>
         <file>back.png</file>
         <file>find.png</file>
+        <file>logo.png</file>
     </qresource>
 </RCC>

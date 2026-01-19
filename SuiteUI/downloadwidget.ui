@@ -162,6 +162,7 @@ QPushButton:pressed {
         </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
+    background: transparent;
     font-size: 16px;
     font-weight: bold;
     color: #333333;
@@ -201,6 +202,7 @@ QPushButton:pressed {
         </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
+    background: transparent;
     font-size: 16px;
     font-weight: bold;
     color: #333333;

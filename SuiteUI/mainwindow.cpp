@@ -10,7 +10,14 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , imageViewer(new ImageViewer(this))
+
 {
+    // Establece el título de la ventana principal (traducible)
+    setWindowTitle("Suite");
+    // Establece el icono de la aplicación desde los recursos Qt
+    setWindowIcon(QIcon(":/icons/logo.png"));
+
+
     ui->setupUi(this);
 
     // 1. Obtener ruta genérica a Documentos/ImageSuite

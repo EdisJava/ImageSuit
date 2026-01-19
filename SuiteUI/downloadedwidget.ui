@@ -64,6 +64,7 @@
         </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
+    background: transparent;
     font-size: 16px;
     font-weight: bold;
     color: #333333;
@@ -103,13 +104,14 @@
         </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
+    background: transparent;
     font-size: 16px;
     font-weight: bold;
     color: #333333;
 }</string>
         </property>
         <property name="text">
-         <string>lorem ipsum.png      </string>
+         <string/>
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -142,6 +144,7 @@
         </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
+    background: transparent;
     font-size: 16px;
     font-weight: bold;
     color: #333333;
@@ -402,6 +405,7 @@ QPushButton:pressed {
         </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
+    background: transparent;
     font-size: 16px;
     font-weight: bold;
     color: #333333;
