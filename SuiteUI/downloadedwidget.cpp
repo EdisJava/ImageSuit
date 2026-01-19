@@ -1,11 +1,13 @@
 #include "DownloadedWidget.h"
-#include "qtimer.h"
 #include "ImageCardDelegate.h"
 #include "ui_DownloadedWidget.h"
 
 #include <QMessageBox>
 #include <QPixmap>
 #include <QDebug>
+#include <QCompleter>
+#include <QLineEdit>
+#include <QTimer>
 
 DownloadedWidget::DownloadedWidget(QWidget *parent)
     : QWidget(parent)
@@ -24,9 +26,7 @@ DownloadedWidget::DownloadedWidget(QWidget *parent)
     ui->DownloadedPictureList->setMovement(QListView::Static); // Evita mover iconos por error
 
     // Conectar selección
-    connect(ui->DownloadedPictureList->selectionModel(),
-            &QItemSelectionModel::currentChanged,
-            this, &DownloadedWidget::onSelectionChanged);
+    connect(ui->DownloadedPictureList->selectionModel(),&QItemSelectionModel::currentChanged, this, &DownloadedWidget::onSelectionChanged);
 
     // Botones inicialmente desactivados
     ui->OpenButton->setEnabled(false);
@@ -40,6 +40,8 @@ DownloadedWidget::DownloadedWidget(QWidget *parent)
     connect(ui->deleteButton, &QPushButton::clicked, this, &DownloadedWidget::onDeleteClicked);
     connect(ui->radioButton, &QRadioButton::toggled, this, &DownloadedWidget::refreshList);
     connect(ui->searchButton, &QPushButton::clicked, this, &DownloadedWidget::onSearchClicked);
+
+
 }
 
 DownloadedWidget::~DownloadedWidget() {
@@ -148,7 +150,7 @@ void DownloadedWidget::onDeleteClicked() {
 void DownloadedWidget::onSearchClicked() {
     if (!m_pictureManager) return;
 
-    QString searchText = ui->textEdit->toPlainText().trimmed();
+    QString searchText = ui->lineEdit->text().trimmed();
 
     m_model->clear();
     m_visibleIndexes.clear();
@@ -164,9 +166,13 @@ void DownloadedWidget::onSearchClicked() {
         if (!searchText.isEmpty() && !pic.nombre().contains(searchText, Qt::CaseInsensitive)) continue;
 
         QStandardItem* item = new QStandardItem(pic.nombre());
+
+        // Asignar icono si la imagen existe
         QPixmap pix(pic.url());
         if (!pix.isNull()) {
-            item->setData(QIcon(pix), Qt::DecorationRole);
+            // Escalamos la miniatura a 64x64 (puedes cambiar el tamaño)
+            QIcon icon(pix.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            item->setData(icon, Qt::DecorationRole);
         }
 
         m_model->appendRow(item);
@@ -174,7 +180,23 @@ void DownloadedWidget::onSearchClicked() {
     }
 }
 
+
 void DownloadedWidget::setPictureManager(PictureManager* manager) {
     m_pictureManager = manager;
+
+    // Construcción de autocompletado
+    QStringList pictureNames;
+    for (const Picture& pic : m_pictureManager->downloaded()) {
+        pictureNames << pic.nombre();
+    }
+
+    QCompleter* completer = new QCompleter(pictureNames, this);
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+    completer->setFilterMode(Qt::MatchContains); // coincidencia parcial
+    ui->lineEdit->setCompleter(completer);
+
+    // Conectar para filtrar la lista mientras escribes
+    connect(ui->lineEdit, &QLineEdit::textChanged,this, &DownloadedWidget::onSearchClicked);
+
     refreshList();
 }
