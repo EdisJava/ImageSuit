@@ -2,41 +2,34 @@
 #define DOWNLOADWIDGET_H
 
 #include <QWidget>
-#include <QStandardItemModel>  // <-- cambio aquí
+#include <QStandardItemModel>
 #include "PictureManager.h"
+#include "ImageCardDelegate.h"
 
-namespace Ui {
-class DownloadWidget;
-}
+namespace Ui { class DownloadWidget; }
 
-class DownloadWidget : public QWidget
-{
+class DownloadWidget : public QWidget {
     Q_OBJECT
-
 public:
     explicit DownloadWidget(QWidget *parent = nullptr);
     ~DownloadWidget();
-
     void setPictureManager(PictureManager* manager);
     void refreshList();
 
 signals:
-    void pictureDownloaded();  // señal para avisar a MainWindow o DownloadedWidget
+    // ESTA ES LA SEÑAL QUE PIDE MAINWINDOW.CPP EN LA LÍNEA 42
+    void pictureDownloaded();
 
 private slots:
-    void onSelectionChanged(const QModelIndex &current);
-    void onDownloadClicked();
-    void onInfoClicked();
-
-    void onDownloadProgress(int progress, const QString& pictureName);
+    void onDownloadAllClicked();
     void onPictureDownloaded(const Picture& picture);
+    void onDownloadProgress(int progress, const QString& pictureName);
 
 private:
     Ui::DownloadWidget *ui;
     PictureManager* m_pictureManager = nullptr;
-    QList<int> m_visibleIndexes; // Esto quitará el error de "not declared in this scope"
-    QStandardItemModel* m_model;  // <-- cambio aquí
-    int m_currentIndex = -1;
+    QStandardItemModel* m_model;
+    ImageCardDelegate* m_delegate;
+    bool m_isDownloadingAll = false;
 };
-
-#endif // DOWNLOADWIDGET_H
+#endif
