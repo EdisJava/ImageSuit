@@ -197,7 +197,7 @@ QPushButton:pressed {
 }</string>
         </property>
         <property name="text">
-         <string>Lorem Ipsum.png</string>
+         <string/>
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignBottom|Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft</set>
