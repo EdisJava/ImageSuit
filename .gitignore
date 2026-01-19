@@ -30,7 +30,7 @@ ui_*.h
 *.jsc
 Makefile*
 *build-*
-*.qm
+#*.qm
 *.prl
 
 # Qt unit tests
@@ -55,4 +55,4 @@ compile_commands.json
 *_qmlcache.qrc
 
 #Compilation directorys
-/*build*/
+/*build*/***

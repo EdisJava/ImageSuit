@@ -44,5 +44,8 @@ else:unix: LIBS += -L$$OUT_PWD/../SuiteCore/ -lSuiteCore
 INCLUDEPATH += $$PWD/../SuiteCore
 DEPENDPATH += $$PWD/../SuiteCore
 
+TRANSLATIONS += \
+        translations/app_es.ts
+
 RESOURCES += \
     resource.qrc
