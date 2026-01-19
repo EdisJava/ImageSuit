@@ -17,6 +17,8 @@ public:
     QPixmap imagen() const;
     bool favorito() const;
     bool descargada() const;
+    QString peso() const { return m_peso.isEmpty() ? "N/A" : m_peso; }
+    QString metadatos() const { return m_metadatos.isEmpty() ? "Sin datos" : m_metadatos; }
 
     // Setters
     void setNombre(const QString& nombre);
@@ -35,7 +37,9 @@ private:
     QPixmap m_imagen;
     bool m_favorito = false;
     bool m_descargada = false;
-    QString m_filePath; // ruta local de la imagen
+    QString m_filePath;
+    QString m_peso;
+    QString m_metadatos;
 
 };
 

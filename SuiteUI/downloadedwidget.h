@@ -4,44 +4,27 @@
 #include <QWidget>
 #include <QStandardItemModel>
 #include "PictureManager.h"
+#include "ImageCardDelegate.h"
 
-namespace Ui {
-class DownloadedWidget;
-}
+namespace Ui { class DownloadedWidget; }
 
-class DownloadedWidget : public QWidget
-{
+class DownloadedWidget : public QWidget {
     Q_OBJECT
-
 public:
     explicit DownloadedWidget(QWidget *parent = nullptr);
     ~DownloadedWidget();
-
     void setPictureManager(PictureManager* manager);
     void refreshList();
 
 signals:
+    // ESTAS SEÑALES SON LAS QUE PIDEN LAS LÍNEAS 43 Y 44 DE MAINWINDOW.CPP
     void pictureDeleted();
     void openPicture(const Picture& picture);
-
-
-private slots:
-    void onSelectionChanged(const QModelIndex &current);
-    void onOpenClicked();
-    void onFavClicked();
-    void onInfoClicked();
-    void onDeleteClicked();
 
 private:
     Ui::DownloadedWidget *ui;
     PictureManager* m_pictureManager = nullptr;
-
     QStandardItemModel* m_model;
-    QList<int> m_visibleIndexes; // índices reales en PictureManager
-    int m_currentIndex = -1;
-
-private slots:
-    void onSearchClicked();
+    ImageCardDelegate* m_delegate;
 };
-
-#endif // DOWNLOADEDWIDGET_H
+#endif
