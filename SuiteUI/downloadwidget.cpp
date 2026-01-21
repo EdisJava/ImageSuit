@@ -101,4 +101,12 @@ void DownloadWidget::onDownloadProgress(int progress, const QString &name) {
     ui->nameLabel->setText("Descargando: " + name);
 }
 
+void DownloadWidget::setViewMode(ImageCardDelegate::ViewMode mode) {
+    m_delegate->setViewMode(mode);
+    ui->DownloadPictureList->setViewMode(mode == ImageCardDelegate::Grid ? QListView::IconMode : QListView::ListMode);
+    ui->DownloadPictureList->doItemsLayout();
+}
+
+
+
 DownloadWidget::~DownloadWidget() { delete ui; }

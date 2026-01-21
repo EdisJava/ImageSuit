@@ -15,9 +15,10 @@ public:
     ~DownloadWidget();
     void setPictureManager(PictureManager* manager);
     void refreshList();
+    void setViewMode(ImageCardDelegate::ViewMode mode);
 
 signals:
-    // ESTA ES LA SEÑAL QUE PIDE MAINWINDOW.CPP EN LA LÍNEA 42
+
     void pictureDownloaded();
 
 private slots:

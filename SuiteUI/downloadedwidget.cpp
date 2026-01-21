@@ -72,6 +72,8 @@ DownloadedWidget::DownloadedWidget(QWidget *parent)
         m_delegate->setViewMode(mode);
         ui->DownloadedPictureList->setViewMode(mode == ImageCardDelegate::Grid ? QListView::IconMode : QListView::ListMode);
         ui->DownloadedPictureList->doItemsLayout();
+
+         emit viewModeToggled(mode);
     });
 }
 

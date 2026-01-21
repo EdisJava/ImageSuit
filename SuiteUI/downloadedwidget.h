@@ -26,6 +26,8 @@ public:
 signals:
     void pictureDeleted();
     void openPicture(const Picture& picture);
+    void viewModeToggled(ImageCardDelegate::ViewMode newMode);
+
 
 private:
     void updateCompleterList();
