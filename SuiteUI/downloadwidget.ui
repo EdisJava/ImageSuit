@@ -261,6 +261,18 @@ QProgressBar::chunk {
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="styleSheet">
+      <string notr="true">QListView {
+    background-color:  rgba(240, 240, 240, 0.9);       /* Fondo claro */
+    color: #000000;                  /* Texto */
+    alternate-background-color: #f5f5f5; /* Filas alternadas */
+}
+
+QListView::item:selected {
+    background-color: #87cefa;       /* Color al seleccionar */
+    color: #000000;                  /* Texto al seleccionar */
+}</string>
+     </property>
      <property name="resizeMode">
       <enum>QListView::ResizeMode::Adjust</enum>
      </property>
