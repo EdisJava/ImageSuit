@@ -2,11 +2,23 @@
 #include "ui_DownloadedWidget.h"
 #include <QMessageBox>
 #include <QItemSelectionModel>
+#include <QCompleter>
+#include <QStringListModel>
 
 DownloadedWidget::DownloadedWidget(QWidget *parent)
     : QWidget(parent), ui(new Ui::DownloadedWidget), m_model(new QStandardItemModel(this))
 {
     ui->setupUi(this);
+
+    // Configurar el autocompletado
+    m_completer = new QCompleter(this);
+    m_completerModel = new QStringListModel(this);
+    m_completer->setModel(m_completerModel);
+    m_completer->setCaseSensitivity(Qt::CaseInsensitive);
+    m_completer->setFilterMode(Qt::MatchContains); // Busca en cualquier parte del texto
+    m_completer->setCompletionMode(QCompleter::PopupCompletion);
+    ui->searchLineEdit->setCompleter(m_completer);
+
     m_delegate = new ImageCardDelegate(this);
     ui->DownloadedPictureList->setItemDelegate(m_delegate);
     ui->DownloadedPictureList->setModel(m_model);
@@ -15,11 +27,11 @@ DownloadedWidget::DownloadedWidget(QWidget *parent)
     // SELECCIÓN SIMPLE: Cambiar el texto del nameLabel al pinchar
     connect(ui->DownloadedPictureList->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, [this](const QItemSelection &selected) {
-        if (!selected.indexes().isEmpty()) {
-            QString name = selected.indexes().first().data(Qt::DisplayRole).toString();
-            ui->namelabel->setText(name);
-        }
-    });
+                if (!selected.indexes().isEmpty()) {
+                    QString name = selected.indexes().first().data(Qt::DisplayRole).toString();
+                    ui->namelabel->setText(name);
+                }
+            });
 
     // FILTROS DINÁMICOS
     connect(ui->searchLineEdit, &QLineEdit::textChanged, this, &DownloadedWidget::refreshList);
@@ -80,6 +92,24 @@ void DownloadedWidget::refreshList() {
         item->setData(true, Qt::UserRole + 2);
         m_model->appendRow(item);
     }
+
+    // Actualizar la lista de autocompletado
+    updateCompleterList();
+}
+
+void DownloadedWidget::updateCompleterList() {
+    if (!m_pictureManager) return;
+
+    QStringList names;
+    for(const auto &pic : m_pictureManager->downloaded()) {
+        names << pic.nombre();
+    }
+
+    // Eliminar duplicados (por si acaso)
+    names.removeDuplicates();
+    names.sort(Qt::CaseInsensitive);
+
+    m_completerModel->setStringList(names);
 }
 
 void DownloadedWidget::setPictureManager(PictureManager *manager) {
@@ -87,4 +117,6 @@ void DownloadedWidget::setPictureManager(PictureManager *manager) {
     refreshList();
 }
 
-DownloadedWidget::~DownloadedWidget() { delete ui; }
+DownloadedWidget::~DownloadedWidget() {
+    delete ui;
+}
