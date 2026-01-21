@@ -3,7 +3,7 @@ The app try to simulate a Suite app where the user donwload images form a JSON I
 Options:
 Download
 Delete
-Show iamge Info
+Show image Info
 Mark Image as Favorite,
 Show only favorites
 Search an image
