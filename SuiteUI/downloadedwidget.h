@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QStandardItemModel>
+#include <QSortFilterProxyModel> // <-- añadir
 #include "PictureManager.h"
 #include "ImageCardDelegate.h"
 
@@ -29,13 +30,13 @@ signals:
     void viewModeToggled(ImageCardDelegate::ViewMode newMode);
     void searchTextChanged(const QString &text);
 
-
 private:
     void updateCompleterList();
 
     Ui::DownloadedWidget *ui;
     PictureManager* m_pictureManager = nullptr;
     QStandardItemModel* m_model;
+    QSortFilterProxyModel* m_proxyModel;  // <-- añadir proxy
     ImageCardDelegate* m_delegate;
 
     // Para el autocompletado

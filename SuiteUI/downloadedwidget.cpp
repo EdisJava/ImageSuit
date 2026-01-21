@@ -1,123 +1,174 @@
 #include "DownloadedWidget.h"
 #include "ui_DownloadedWidget.h"
+
 #include <QMessageBox>
 #include <QItemSelectionModel>
+#include <QLineEdit>
+#include <QRadioButton>
 #include <QCompleter>
 #include <QStringListModel>
+#include <QSortFilterProxyModel>
 
 DownloadedWidget::DownloadedWidget(QWidget *parent)
-    : QWidget(parent), ui(new Ui::DownloadedWidget), m_model(new QStandardItemModel(this))
+    : QWidget(parent),
+    ui(new Ui::DownloadedWidget),
+    m_model(new QStandardItemModel(this)),
+    m_proxyModel(new QSortFilterProxyModel(this))
 {
     ui->setupUi(this);
 
-    // Configurar el autocompletado
+    // --------------------------
+    // Configurar proxy y modelo
+    // --------------------------
+    m_proxyModel->setSourceModel(m_model);
+    m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    m_proxyModel->setFilterKeyColumn(0); // filtra por nombre
+    ui->DownloadedPictureList->setModel(m_proxyModel);
+
+    // --------------------------
+    // Configurar delegado
+    // --------------------------
+    m_delegate = new ImageCardDelegate(this);
+    ui->DownloadedPictureList->setItemDelegate(m_delegate);
+    ui->DownloadedPictureList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    // --------------------------
+    // Configurar completer
+    // --------------------------
     m_completer = new QCompleter(this);
     m_completerModel = new QStringListModel(this);
     m_completer->setModel(m_completerModel);
     m_completer->setCaseSensitivity(Qt::CaseInsensitive);
-    m_completer->setFilterMode(Qt::MatchContains); // Busca en cualquier parte del texto
-    m_completer->setCompletionMode(QCompleter::PopupCompletion);
+    m_completer->setFilterMode(Qt::MatchContains);
     ui->searchLineEdit->setCompleter(m_completer);
 
-    m_delegate = new ImageCardDelegate(this);
-    ui->DownloadedPictureList->setItemDelegate(m_delegate);
-    ui->DownloadedPictureList->setModel(m_model);
-    ui->DownloadedPictureList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    // --------------------------
+    // Conexión búsqueda -> proxy
+    // --------------------------
+    connect(ui->searchLineEdit, &QLineEdit::textChanged, this, [this](const QString &text){
+        m_proxyModel->setFilterFixedString(text);
+        emit searchTextChanged(text);
+    });
 
-    // SELECCIÓN SIMPLE: Cambiar el texto del nameLabel al pinchar
-    connect(ui->DownloadedPictureList->selectionModel(), &QItemSelectionModel::selectionChanged,
-            this, [this](const QItemSelection &selected) {
-                if (!selected.indexes().isEmpty()) {
-                    QString name = selected.indexes().first().data(Qt::DisplayRole).toString();
-                    ui->namelabel->setText(name);
-                }
-            });
-
-    // FILTROS DINÁMICOS
-    connect(ui->searchLineEdit, &QLineEdit::textChanged, this, &DownloadedWidget::refreshList);
     connect(ui->radioButton, &QRadioButton::toggled, this, &DownloadedWidget::refreshList);
-    connect(ui->searchLineEdit, &QLineEdit::textChanged, this, &DownloadedWidget::searchTextChanged);
 
-    // DOBLE CLICK: Abrir visor
+    // --------------------------
+    // Doble click -> abrir imagen
+    // --------------------------
     connect(m_delegate, &ImageCardDelegate::doubleClicked, this, [this](const QModelIndex &idx){
-        auto downloaded = m_pictureManager->downloaded();
-        if (idx.row() < downloaded.size())
-            emit openPicture(downloaded.at(idx.row()));
+        QModelIndex sourceIdx = m_proxyModel->mapToSource(idx);
+        if (sourceIdx.isValid() && m_pictureManager) {
+            int realIndex = sourceIdx.data(Qt::UserRole).toInt();
+            emit openPicture(m_pictureManager->allPictures().at(realIndex));
+        }
     });
 
-    // CLIC EN 'i': Info
+    // --------------------------
+    // Info
+    // --------------------------
     connect(m_delegate, &ImageCardDelegate::infoRequested, this, [this](const QModelIndex &idx){
-        const auto &pic = m_pictureManager->downloaded().at(idx.row());
-        QString info = QString("Nombre: %1\nRuta: %2").arg(pic.nombre(), pic.url());
-        QMessageBox::information(this, "Info", info);
+        QModelIndex sourceIdx = m_proxyModel->mapToSource(idx);
+        if (sourceIdx.isValid() && m_pictureManager) {
+            int realIndex = sourceIdx.data(Qt::UserRole).toInt();
+            const Picture &pic = m_pictureManager->allPictures().at(realIndex);
+            QString info = QString("Nombre: %1\nRuta: %2").arg(pic.nombre(), pic.url());
+            QMessageBox::information(this, "Info", info);
+        }
     });
 
-    // FAVORITOS Y BORRAR
+    // --------------------------
+    // Favorito
+    // --------------------------
     connect(m_delegate, &ImageCardDelegate::favoriteToggled, this, [this](const QModelIndex &idx){
-        m_pictureManager->toggleFavorite(idx.row());
-        refreshList();
+        QModelIndex sourceIdx = m_proxyModel->mapToSource(idx);
+        if (sourceIdx.isValid() && m_pictureManager) {
+            int realIndex = sourceIdx.data(Qt::UserRole).toInt();
+            m_pictureManager->toggleFavorite(realIndex);
+            refreshList();
+        }
     });
 
+    // --------------------------
+    // Borrar
+    // --------------------------
     connect(m_delegate, &ImageCardDelegate::deleteRequested, this, [this](const QModelIndex &idx){
-        auto downloaded = m_pictureManager->downloaded();
-        if (idx.row() < downloaded.size()) {
-            m_pictureManager->removeDownloaded(downloaded.at(idx.row()));
+        QModelIndex sourceIdx = m_proxyModel->mapToSource(idx);
+        if (sourceIdx.isValid() && m_pictureManager) {
+            int realIndex = sourceIdx.data(Qt::UserRole).toInt();
+            const Picture &pic = m_pictureManager->allPictures().at(realIndex);
+            m_pictureManager->removeDownloaded(pic);
             refreshList();
             emit pictureDeleted();
         }
     });
 
-    // CAMBIO DE VISTA (Cuadrícula / Lista)
+    // --------------------------
+    // Toggle vista (cuadrícula / lista)
+    // --------------------------
     connect(ui->toggleViewButton, &QPushButton::clicked, this, [this](){
-        auto mode = (m_delegate->viewMode() == ImageCardDelegate::Grid) ? ImageCardDelegate::List : ImageCardDelegate::Grid;
-        m_delegate->setViewMode(mode);
-        ui->DownloadedPictureList->setViewMode(mode == ImageCardDelegate::Grid ? QListView::IconMode : QListView::ListMode);
-        ui->DownloadedPictureList->doItemsLayout();
+        auto mode = (m_delegate->viewMode() == ImageCardDelegate::Grid)
+        ? ImageCardDelegate::List
+        : ImageCardDelegate::Grid;
 
-         emit viewModeToggled(mode);
+        m_delegate->setViewMode(mode);
+        ui->DownloadedPictureList->setViewMode(mode == ImageCardDelegate::Grid
+                                                   ? QListView::IconMode
+                                                   : QListView::ListMode);
+        ui->DownloadedPictureList->doItemsLayout();
+        emit viewModeToggled(mode);
     });
 }
 
+// --------------------------
+// Establecer PictureManager
+// --------------------------
+void DownloadedWidget::setPictureManager(PictureManager *manager) {
+    m_pictureManager = manager;
+    refreshList();
+}
+
+// --------------------------
+// Refrescar lista de elementos visibles
+// --------------------------
 void DownloadedWidget::refreshList() {
     m_model->clear();
     if (!m_pictureManager) return;
 
-    QString searchText = ui->searchLineEdit->text().toLower();
     bool onlyFavorites = ui->radioButton->isChecked();
 
-    for(const auto &pic : m_pictureManager->downloaded()) {
-        if(onlyFavorites && !pic.favorito()) continue;
-        if(!searchText.isEmpty() && !pic.nombre().toLower().contains(searchText)) continue;
+    const QList<Picture> &allPics = m_pictureManager->allPictures();
 
-        QStandardItem *item = new QStandardItem(pic.nombre());
+    for (int i = 0; i < allPics.size(); ++i) {
+        const Picture &pic = allPics.at(i);
+
+        if (!pic.descargada()) continue;       // solo descargadas
+        if (onlyFavorites && !pic.favorito()) continue;
+
+        QStandardItem* item = new QStandardItem(pic.nombre());
         item->setData(QIcon(pic.url()), Qt::DecorationRole);
         item->setData(pic.favorito(), Qt::UserRole + 1);
         item->setData(true, Qt::UserRole + 2);
+        item->setData(i, Qt::UserRole); // índice real en PictureManager
         m_model->appendRow(item);
     }
 
-    // Actualizar la lista de autocompletado
     updateCompleterList();
 }
 
+// --------------------------
+// Actualizar lista de autocompletado
+// --------------------------
 void DownloadedWidget::updateCompleterList() {
     if (!m_pictureManager) return;
 
     QStringList names;
-    for(const auto &pic : m_pictureManager->downloaded()) {
-        names << pic.nombre();
+    for (const Picture &pic : m_pictureManager->allPictures()) {
+        if (pic.descargada())
+            names << pic.nombre();
     }
-
-    // Eliminar duplicados (por si acaso)
     names.removeDuplicates();
     names.sort(Qt::CaseInsensitive);
-
     m_completerModel->setStringList(names);
-}
-
-void DownloadedWidget::setPictureManager(PictureManager *manager) {
-    m_pictureManager = manager;
-    refreshList();
 }
 
 DownloadedWidget::~DownloadedWidget() {
