@@ -20,6 +20,7 @@ public:
     void setBasePath(const QString& path);
     QString getDownloadedJsonPath() const;
     QString getImagesFolderPath() const;
+    QVector<Picture> notDownloaded() const;
 
     // Carga y guardado
     bool loadFromJson(const QString& filepath);

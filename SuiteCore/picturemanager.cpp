@@ -110,3 +110,11 @@ QList<Picture> PictureManager::toDownload() const {
 const QList<Picture>& PictureManager::allPictures() const {
     return m_pictures;
 }
+
+QVector<Picture> PictureManager::notDownloaded() const {
+    QVector<Picture> result;
+    for (const auto &pic : allPictures()) {  // allPictures() devuelve todas
+        if (!pic.descargada()) result.append(pic);
+    }
+    return result;
+}

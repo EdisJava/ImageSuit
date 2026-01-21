@@ -36,6 +36,7 @@ DownloadedWidget::DownloadedWidget(QWidget *parent)
     // FILTROS DINÁMICOS
     connect(ui->searchLineEdit, &QLineEdit::textChanged, this, &DownloadedWidget::refreshList);
     connect(ui->radioButton, &QRadioButton::toggled, this, &DownloadedWidget::refreshList);
+    connect(ui->searchLineEdit, &QLineEdit::textChanged, this, &DownloadedWidget::searchTextChanged);
 
     // DOBLE CLICK: Abrir visor
     connect(m_delegate, &ImageCardDelegate::doubleClicked, this, [this](const QModelIndex &idx){

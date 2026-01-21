@@ -50,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->downloadedWidget, &DownloadedWidget::pictureDeleted, ui->downloadWidget, &DownloadWidget::refreshList);
     connect(ui->downloadedWidget, &DownloadedWidget::openPicture, imageViewer, &ImageViewer::showPicture);
     connect(ui->downloadedWidget, &DownloadedWidget::viewModeToggled, ui->downloadWidget, &DownloadWidget::setViewMode);
+    connect(ui->downloadedWidget, &DownloadedWidget::searchTextChanged,ui->downloadWidget, &DownloadWidget::refreshWithSearch);
 
     // 7. Carga inicial de UI
     ui->downloadWidget->refreshList();

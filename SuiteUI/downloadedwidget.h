@@ -27,6 +27,7 @@ signals:
     void pictureDeleted();
     void openPicture(const Picture& picture);
     void viewModeToggled(ImageCardDelegate::ViewMode newMode);
+    void searchTextChanged(const QString &text);
 
 
 private:

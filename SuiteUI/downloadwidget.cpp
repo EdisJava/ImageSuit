@@ -107,6 +107,16 @@ void DownloadWidget::setViewMode(ImageCardDelegate::ViewMode mode) {
     ui->DownloadPictureList->doItemsLayout();
 }
 
+void DownloadWidget::refreshWithSearch(const QString &searchText) {
+    m_model->clear();
+    if (!m_pictureManager) return;
 
+    for(const auto &pic : m_pictureManager->notDownloaded()) {
+        if (!pic.nombre().toLower().contains(searchText.toLower())) continue;
+        QStandardItem *item = new QStandardItem(pic.nombre());
+        item->setData(QIcon(pic.url()), Qt::DecorationRole);
+        m_model->appendRow(item);
+    }
+}
 
 DownloadWidget::~DownloadWidget() { delete ui; }

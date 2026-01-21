@@ -21,6 +21,9 @@ signals:
 
     void pictureDownloaded();
 
+public slots:
+    void refreshWithSearch(const QString &searchText);
+
 private slots:
     void onDownloadAllClicked();
     void onPictureDownloaded(const Picture& picture);
