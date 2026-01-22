@@ -16,8 +16,11 @@ public:
     void setPictureManager(PictureManager* manager);
     void refreshList();
 
+    // MÉTODOS PÚBLICOS PARA SINCRONIZACIÓN
+    void applyExternalFilter(const QString &text);
+    void applyExternalViewMode(ImageCardDelegate::ViewMode mode);
+
 signals:
-    // ESTA ES LA SEÑAL QUE PIDE MAINWINDOW.CPP EN LA LÍNEA 42
     void pictureDownloaded();
 
 private slots:
@@ -31,5 +34,6 @@ private:
     QStandardItemModel* m_model;
     ImageCardDelegate* m_delegate;
     bool m_isDownloadingAll = false;
+    QString m_externalFilter; // Guarda el filtro que viene de fuera
 };
 #endif

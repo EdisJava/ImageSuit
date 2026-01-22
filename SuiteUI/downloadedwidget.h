@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QStandardItemModel>
+#include <QAbstractItemView>
 #include "PictureManager.h"
 #include "ImageCardDelegate.h"
 
@@ -16,10 +17,14 @@ public:
     void setPictureManager(PictureManager* manager);
     void refreshList();
 
+    // MÉTODO ESTÁTICO PARA BLOQUEAR ARRASTRE
+    static void disableDragDrop(QAbstractItemView* view);
+
 signals:
-    // ESTAS SEÑALES SON LAS QUE PIDEN LAS LÍNEAS 43 Y 44 DE MAINWINDOW.CPP
     void pictureDeleted();
     void openPicture(const Picture& picture);
+    void searchChanged(const QString &text);
+    void viewModeChanged(ImageCardDelegate::ViewMode mode);
 
 private:
     Ui::DownloadedWidget *ui;

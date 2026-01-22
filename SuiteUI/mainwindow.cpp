@@ -7,50 +7,45 @@
 #include <QCloseEvent>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-    , imageViewer(new ImageViewer(this))
-
+    : QMainWindow(parent), ui(new Ui::MainWindow), imageViewer(new ImageViewer(this))
 {
-    // Establece el título de la ventana principal (traducible)
-    setWindowTitle("Suite");
-    // Establece el icono de la aplicación desde los recursos Qt
-    setWindowIcon(QIcon(":/icons/logo.png"));
-
-
     ui->setupUi(this);
 
-    // 1. Obtener ruta genérica a Documentos/ImageSuite
+    // ... (Tu código de rutas y PictureManager igual que antes) ...
     QString docsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     QString projectPath = QDir(docsPath).filePath("ImageSuite");
-
-    // 2. Crear carpetas si no existen
     QDir dir(projectPath);
     if (!dir.exists()) dir.mkpath(".");
     if (!dir.exists("images")) dir.mkdir("images");
 
-    // 3. Configurar Manager con la ruta base antes de cargar nada
     m_pictureManager.setBasePath(projectPath);
+    m_pictureManager.loadCatalog(QDir(projectPath).filePath("download.json"));
+    m_pictureManager.loadDownloaded(QDir(projectPath).filePath("downloaded.json"));
 
-    QString catalogPath = QDir(projectPath).filePath("download.json");
-    QString downloadedPath = QDir(projectPath).filePath("downloaded.json");
-
-    qDebug() << "Ruta de trabajo:" << projectPath;
-
-    // 4. Cargar datos
-    m_pictureManager.loadCatalog(catalogPath);
-    m_pictureManager.loadDownloaded(downloadedPath);
-
-    // 5. Pasar Manager a los widgets hijos
+    // ASIGNAR MANAGER
     ui->downloadWidget->setPictureManager(&m_pictureManager);
     ui->downloadedWidget->setPictureManager(&m_pictureManager);
 
-    // 6. Conexiones de Sincronización
+    // --- CONEXIONES ENTRE WIDGETS ---
+
+    // 1. Si descarga termina -> refrescar lista de descargados
     connect(ui->downloadWidget, &DownloadWidget::pictureDownloaded, ui->downloadedWidget, &DownloadedWidget::refreshList);
+
+    // 2. Si se borra una foto -> refrescar lista de descargas (por si vuelve a aparecer)
     connect(ui->downloadedWidget, &DownloadedWidget::pictureDeleted, ui->downloadWidget, &DownloadWidget::refreshList);
+
+    // 3. Abrir visor
     connect(ui->downloadedWidget, &DownloadedWidget::openPicture, imageViewer, &ImageViewer::showPicture);
 
-    // 7. Carga inicial de UI
+    // 4. SINCRONIZACIÓN BUSCADOR
+    connect(ui->downloadedWidget, &DownloadedWidget::searchChanged,
+            ui->downloadWidget, &DownloadWidget::applyExternalFilter);
+
+    // 5. SINCRONIZACIÓN VISTA (GRID/LIST)
+    connect(ui->downloadedWidget, &DownloadedWidget::viewModeChanged,
+            ui->downloadWidget, &DownloadWidget::applyExternalViewMode);
+
+    // Refresco inicial
     ui->downloadWidget->refreshList();
     ui->downloadedWidget->refreshList();
 }

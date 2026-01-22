@@ -110,3 +110,25 @@ QList<Picture> PictureManager::toDownload() const {
 const QList<Picture>& PictureManager::allPictures() const {
     return m_pictures;
 }
+
+void PictureManager::toggleFavoriteByName(const QString& name) {
+    for (int i = 0; i < m_pictures.size(); ++i) {
+        if (m_pictures[i].nombre() == name) {
+            m_pictures[i].setFavorito(!m_pictures[i].favorito());
+            saveDownloaded(getDownloadedJsonPath());
+            return; // Salimos en cuanto lo encontramos
+        }
+    }
+}
+
+void PictureManager::removeDownloadedByName(const QString& name) {
+    for (int i = 0; i < m_pictures.size(); ++i) {
+        if (m_pictures[i].nombre() == name) {
+            m_pictures[i].setDescargada(false);
+            m_pictures[i].setFavorito(false);
+            saveDownloaded(getDownloadedJsonPath());
+            emit pictureRemoved(m_pictures[i]);
+            return;
+        }
+    }
+}

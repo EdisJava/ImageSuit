@@ -132,18 +132,16 @@
        </spacer>
       </item>
       <item>
-       <widget class="QRadioButton" name="radioButton">
-        <property name="styleSheet">
-         <string notr="true">QRadioButton{
-	background: transparent;
-}</string>
-        </property>
+       <widget class="QPushButton" name="btnFilterFavorites">
         <property name="text">
-         <string>Show Favorites</string>
+         <string/>
         </property>
         <property name="icon">
          <iconset resource="resource.qrc">
           <normaloff>:/icons/favorito.png</normaloff>:/icons/favorito.png</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

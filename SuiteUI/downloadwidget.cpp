@@ -1,56 +1,79 @@
 #include "DownloadWidget.h"
 #include "ui_DownloadWidget.h"
+#include "DownloadedWidget.h"
 #include <QMessageBox>
-#include <QItemSelectionModel>
 #include <QMetaObject>
 
 DownloadWidget::DownloadWidget(QWidget *parent)
     : QWidget(parent), ui(new Ui::DownloadWidget), m_model(new QStandardItemModel(this))
 {
     ui->setupUi(this);
+    if(ui->progressBar) ui->progressBar->setVisible(false);
+
     m_delegate = new ImageCardDelegate(this);
     ui->DownloadPictureList->setItemDelegate(m_delegate);
     ui->DownloadPictureList->setModel(m_model);
-
-    // Evitar que el doble clic abra el editor de texto
     ui->DownloadPictureList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->DownloadPictureList->setViewMode(QListView::IconMode);
 
-    // SELECCIÓN SIMPLE: Al pinchar una imagen, cambiar el texto del nameLabel
-    connect(ui->DownloadPictureList->selectionModel(), &QItemSelectionModel::selectionChanged,
-            this, [this](const QItemSelection &selected) {
-        if (!selected.indexes().isEmpty()) {
-            QString name = selected.indexes().first().data(Qt::DisplayRole).toString();
-            ui->nameLabel->setText(name);
+    DownloadedWidget::disableDragDrop(ui->DownloadPictureList);
+
+    // --- SELECCIÓN: Actualizar el nameLabel en Download ---
+    connect(ui->DownloadPictureList->selectionModel(), &QItemSelectionModel::currentChanged,
+            this, [this](const QModelIndex &current, const QModelIndex &previous) {
+        Q_UNUSED(previous);
+        if (current.isValid()) {
+            ui->nameLabel->setText(current.data(Qt::DisplayRole).toString());
         }
     });
 
-    // Botón de descarga masiva
     connect(ui->DownloadAllButton, &QPushButton::clicked, this, &DownloadWidget::onDownloadAllClicked);
 
-    // DOBLE CLIC: Descargar imagen individual
     connect(m_delegate, &ImageCardDelegate::doubleClicked, this, [this](const QModelIndex &idx){
         if (!m_isDownloadingAll) {
+            m_model->setData(idx, 0, Qt::UserRole + 5);
             m_pictureManager->downloadPicture(idx.row());
         }
     });
 
-    // CLIC EN INFO ('i'): Mostrar nombre y URL
     connect(m_delegate, &ImageCardDelegate::infoRequested, this, [this](const QModelIndex &idx){
-        const auto &pic = m_pictureManager->toDownload().at(idx.row());
-        QString info = QString("<b>Nombre:</b> %1<br><b>URL:</b> %2")
-                        .arg(pic.nombre(), pic.url());
-        QMessageBox::information(this, "Información de Catálogo", info);
+        auto list = m_pictureManager->toDownload();
+        if(idx.row() < (int)list.size()) {
+            QMessageBox::information(this, "Info", "URL: " + list.at(idx.row()).url());
+        }
     });
+}
+
+void DownloadWidget::applyExternalViewMode(ImageCardDelegate::ViewMode mode) {
+    m_delegate->setViewMode(mode);
+    ui->DownloadPictureList->setViewMode(mode == ImageCardDelegate::Grid ? QListView::IconMode : QListView::ListMode);
+    ui->DownloadPictureList->doItemsLayout();
+    ui->DownloadPictureList->viewport()->update();
+}
+
+void DownloadWidget::applyExternalFilter(const QString &text) {
+    m_externalFilter = text.toLower();
+    refreshList();
+}
+
+void DownloadWidget::refreshList() {
+    m_model->clear();
+    if (!m_pictureManager) return;
+    for(const auto &pic : m_pictureManager->toDownload()) {
+        if(!m_externalFilter.isEmpty() && !pic.nombre().toLower().contains(m_externalFilter)) continue;
+        QStandardItem *item = new QStandardItem(pic.nombre());
+        item->setData(QIcon(pic.url()), Qt::DecorationRole);
+        item->setData(QVariant(), Qt::UserRole + 1);
+        item->setData(false, Qt::UserRole + 2);
+        item->setData(-1, Qt::UserRole + 5);
+        m_model->appendRow(item);
+    }
 }
 
 void DownloadWidget::onDownloadAllClicked() {
     if (!m_pictureManager || m_pictureManager->toDownload().isEmpty() || m_isDownloadingAll) return;
-
     m_isDownloadingAll = true;
     ui->DownloadAllButton->setEnabled(false);
-
-    // Usamos invokeMethod con QueuedConnection para procesar la descarga
-    // sin bloquear la GUI y sin errores de hilos.
     QMetaObject::invokeMethod(m_pictureManager, [this](){
         m_pictureManager->downloadPicture(0);
     }, Qt::QueuedConnection);
@@ -59,33 +82,26 @@ void DownloadWidget::onDownloadAllClicked() {
 void DownloadWidget::onPictureDownloaded(const Picture &picture) {
     Q_UNUSED(picture);
     refreshList();
-
     if (m_isDownloadingAll) {
         if (!m_pictureManager->toDownload().isEmpty()) {
-            // Siguiente descarga
             QMetaObject::invokeMethod(m_pictureManager, [this](){
                 m_pictureManager->downloadPicture(0);
             }, Qt::QueuedConnection);
         } else {
             m_isDownloadingAll = false;
             ui->DownloadAllButton->setEnabled(true);
-            ui->nameLabel->setText("Descargas finalizadas");
-            QMessageBox::information(this, "Éxito", "Todas las imágenes se han descargado correctamente.");
+            QMessageBox::information(this, "Éxito", "Descarga masiva completada.");
         }
     }
     emit pictureDownloaded();
 }
 
-void DownloadWidget::refreshList() {
-    m_model->clear();
-    if (!m_pictureManager) return;
-
-    for(const auto &pic : m_pictureManager->toDownload()) {
-        QStandardItem *item = new QStandardItem(pic.nombre());
-        item->setData(QIcon(pic.url()), Qt::DecorationRole);
-        item->setData(QVariant(), Qt::UserRole + 1);
-        item->setData(false, Qt::UserRole + 2);
-        m_model->appendRow(item);
+void DownloadWidget::onDownloadProgress(int progress, const QString &name) {
+    for (int i = 0; i < m_model->rowCount(); ++i) {
+        if (m_model->item(i)->text() == name) {
+            m_model->item(i)->setData(progress, Qt::UserRole + 5);
+            break;
+        }
     }
 }
 
@@ -94,11 +110,6 @@ void DownloadWidget::setPictureManager(PictureManager *manager) {
     connect(manager, &PictureManager::pictureDownloaded, this, &DownloadWidget::onPictureDownloaded);
     connect(manager, &PictureManager::downloadProgress, this, &DownloadWidget::onDownloadProgress);
     refreshList();
-}
-
-void DownloadWidget::onDownloadProgress(int progress, const QString &name) {
-    ui->progressBar->setValue(progress);
-    ui->nameLabel->setText("Descargando: " + name);
 }
 
 DownloadWidget::~DownloadWidget() { delete ui; }

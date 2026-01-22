@@ -44,6 +44,8 @@ public:
     // Operaciones
     void downloadPicture(int index);
     void toggleFavorite(int indexReal); // Se recomienda usar índice real de m_pictures
+    void toggleFavoriteByName(const QString& name);
+    void removeDownloadedByName(const QString& name);
 
 signals:
     void pictureDownloaded(const Picture& picture);
