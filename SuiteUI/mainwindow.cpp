@@ -36,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 3. Abrir visor
     connect(ui->downloadedWidget, &DownloadedWidget::openPicture, imageViewer, &ImageViewer::showPicture);
+    connect(ui->downloadedWidget, &DownloadedWidget::viewModeToggled, ui->downloadWidget, &DownloadWidget::setViewMode);
+    connect(ui->downloadedWidget, &DownloadedWidget::searchTextChanged,ui->downloadWidget, &DownloadWidget::refreshWithSearch);
 
     // 4. SINCRONIZACIÓN BUSCADOR
     connect(ui->downloadedWidget, &DownloadedWidget::searchChanged,

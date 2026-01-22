@@ -15,13 +15,18 @@ public:
     ~DownloadWidget();
     void setPictureManager(PictureManager* manager);
     void refreshList();
+    void setViewMode(ImageCardDelegate::ViewMode mode);
 
     // MÉTODOS PÚBLICOS PARA SINCRONIZACIÓN
     void applyExternalFilter(const QString &text);
     void applyExternalViewMode(ImageCardDelegate::ViewMode mode);
 
 signals:
+
     void pictureDownloaded();
+
+public slots:
+    void refreshWithSearch(const QString &searchText);
 
 private slots:
     void onDownloadAllClicked();

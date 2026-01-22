@@ -131,4 +131,10 @@ void PictureManager::removeDownloadedByName(const QString& name) {
             return;
         }
     }
+QVector<Picture> PictureManager::notDownloaded() const {
+    QVector<Picture> result;
+    for (const auto &pic : allPictures()) {  // allPictures() devuelve todas
+        if (!pic.descargada()) result.append(pic);
+    }
+    return result;
 }
