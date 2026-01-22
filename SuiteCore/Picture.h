@@ -3,6 +3,7 @@
 
 #include "QtGui/qpixmap.h"
 #include "SuiteCore_global.h"
+#include <QDate>
 
 class SUITECORE_EXPORT Picture
 {
@@ -29,6 +30,10 @@ public:
     void setDescargada(bool descargada);
     void setFilePath(const QString& path) { m_filePath = path; }
     QString filePath() const { return m_filePath; }
+    void setExpirationDate(const QDate &date);
+    QDate expirationDate() const;
+
+    bool isExpired() const { return m_expirationDate.isValid() && QDate::currentDate() > m_expirationDate; }
 
 private:
     QString m_nombre;
@@ -40,6 +45,7 @@ private:
     QString m_filePath;
     QString m_peso;
     QString m_metadatos;
+    QDate m_expirationDate;
 
 };
 

@@ -36,6 +36,10 @@ DownloadWidget::DownloadWidget(QWidget *parent)
     // Doble clic abrir
     connect(m_delegate, &ImageCardDelegate::doubleClicked, this, [this](const QModelIndex &idx){
         if (!m_isDownloadingAll) {
+            const auto &pic = m_pictureManager->toDownload().at(idx.row());
+            if (pic.isExpired()) {
+                QMessageBox::warning(this, "Caducada", "Esta imagen ha caducado. Se descargará pero no podrá abrirse.");
+            }
             m_model->setData(idx, 0, Qt::UserRole + 5);
             m_pictureManager->downloadPicture(idx.row());
         }

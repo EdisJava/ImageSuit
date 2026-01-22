@@ -1,5 +1,9 @@
 #include "PictureManager.h"
 #include "PictureDAO.h"
+#include "qdir.h"
+#include "qjsonarray.h"
+#include "qjsondocument.h"
+#include "qjsonobject.h"
 #include <QTimer>
 #include <QDebug>
 
@@ -40,12 +44,12 @@ bool PictureManager::loadDownloaded(const QString& filepath) {
     return true;
 }
 
+
 bool PictureManager::saveDownloaded(const QString& filepath) {
     return PictureDAO::saveDownloaded(m_pictures, filepath);
 }
 
 void PictureManager::downloadPicture(int index) {
-    // Esta lista es la que viene de toDownload()
     QList<Picture> list = toDownload();
     if (index < 0 || index >= list.size()) return;
 
@@ -57,13 +61,25 @@ void PictureManager::downloadPicture(int index) {
     connect(timer, &QTimer::timeout, this, [this, timer, progress, targetUrl]() {
         *progress += 10;
 
-        // Buscar la imagen en la lista maestra para actualizar progreso
-        for(Picture& p : m_pictures) {
-            if(p.url() == targetUrl) {
+        for (Picture& p : m_pictures) {
+            if (p.url() == targetUrl) {
                 emit downloadProgress(*progress, p.nombre());
+
                 if (*progress >= 100) {
                     p.setDescargada(true);
                     p.setFilePath(m_basePath + "/images/" + p.nombre() + ".jpg");
+
+                    // Solo asignamos fecha si aún no tiene
+                    if (!p.expirationDate().isValid()) {
+                        if (p.nombre() == "Tranvia entre arboles") {
+                            // Esta imagen estará caducada
+                            p.setExpirationDate(QDate::currentDate().addDays(-3));
+                        } else {
+                            // Las demás estarán válidas
+                            p.setExpirationDate(QDate::currentDate().addDays(30));
+                        }
+                    }
+
                     timer->stop();
                     saveDownloaded(getDownloadedJsonPath());
                     emit pictureDownloaded(p);
@@ -74,8 +90,11 @@ void PictureManager::downloadPicture(int index) {
             }
         }
     });
+
     timer->start(50);
 }
+
+
 
 void PictureManager::removeDownloaded(const Picture& picture) {
     for (int i = 0; i < m_pictures.size(); ++i) {

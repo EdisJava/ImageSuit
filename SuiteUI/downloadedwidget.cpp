@@ -77,14 +77,20 @@ void DownloadedWidget::setupConnections() {
         }
     });
 
-    // Doble clic abrir
+    // Doble clic abrir (con control de caducidad)
     connect(m_delegate, &ImageCardDelegate::doubleClicked, this, [this](const QModelIndex &idx){
         QModelIndex sourceIdx = m_downloadedProxy->mapToSource(idx);
         if (sourceIdx.isValid() && m_pictureManager) {
+            bool expired = sourceIdx.data(Qt::UserRole + 6).toBool(); // <-- revisa si está caducada
+            if (expired) {
+                QMessageBox::warning(this, "Caducada", "Esta imagen ha caducado y no se puede abrir.");
+                return; // No abrir la imagen
+            }
             const auto &pic = m_pictureManager->downloaded().at(sourceIdx.row());
             emit openPicture(pic);
         }
     });
+
 
     // Borrar
     connect(m_delegate, &ImageCardDelegate::deleteRequested, this, [this](const QModelIndex &idx){
@@ -119,22 +125,34 @@ void DownloadedWidget::refreshList() {
 
     QString search = ui->searchLineEdit->text().toLower();
     bool onlyFavs = ui->btnFilterFavorites->isChecked();
+    QDate today = QDate::currentDate();
 
-    // Lista de descargadas
-    for (auto &pic : m_pictureManager->downloaded()) {
+    for (const auto &pic : m_pictureManager->downloaded()) {
         if (onlyFavs && !pic.favorito()) continue;
         if (!search.isEmpty() && !pic.nombre().toLower().contains(search)) continue;
 
-        QStandardItem* item = new QStandardItem(pic.nombre());
+        QString displayName = pic.nombre();
+        bool expired = false;
+
+        if (pic.expirationDate().isValid() && pic.expirationDate() < today) {
+            displayName += " (Caducada)";
+            expired = true;
+        }
+
+        QStandardItem* item = new QStandardItem(displayName);
         item->setData(QIcon(pic.url()), Qt::DecorationRole);
         item->setData(pic.favorito(), Qt::UserRole + 1);
-        item->setData(true, Qt::UserRole + 2);  // Para que los botones se vean
-        item->setData(-1, Qt::UserRole + 5);    // Progreso (si aplica)
+        item->setData(true, Qt::UserRole + 2);
+        item->setData(-1, Qt::UserRole + 5);
+        item->setData(expired, Qt::UserRole + 6); // 🔑 CLAVE
+
         m_downloadedModel->appendRow(item);
     }
 
     updateCompleterList();
 }
+
+
 
 void DownloadedWidget::updateCompleterList() {
     if (!m_pictureManager) return;

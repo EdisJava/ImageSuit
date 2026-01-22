@@ -31,9 +31,22 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     QSize s = r.size();
 
     bool sel = option.state & QStyle::State_Selected;
-    painter->setPen(QPen(sel ? QColor(255,165,0) : QColor(220,220,220), 1));
-    painter->setBrush(sel ? QColor(255,165,0,10) : Qt::white);
-    painter->drawRoundedRect(QRect(0,0,s.width(),s.height()), 10, 10);
+    bool expired = index.data(Qt::UserRole + 6).toBool(); // <-- Nuevo: caducada
+
+    // Cambiamos fondo según caducada o seleccionada
+    QColor borderColor = sel ? QColor(255,165,0) : QColor(220,220,220);
+    QColor fillColor = Qt::white;
+
+    if(expired) {
+        fillColor = QColor(255, 120, 120, 150); // rojo suave semi-transparente
+        borderColor = QColor(200, 0, 0);        // borde rojo más fuerte
+    } else if(sel) {
+        fillColor = QColor(255,165,0,10);
+    }
+
+    painter->setPen(QPen(borderColor, 1));
+    painter->setBrush(fillColor);
+    painter->drawRoundedRect(QRect(0,0,s.width(), s.height()), 10, 10);
 
     QRect favR, infR, delR, progR;
     getRectsLocal(s, m_mode, favR, infR, delR, progR);
@@ -76,6 +89,7 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
 
     painter->restore();
 }
+
 
 bool ImageCardDelegate::editorEvent(QEvent *e, QAbstractItemModel *m, const QStyleOptionViewItem &o, const QModelIndex &i) {
     if(e->type() == QEvent::MouseButtonPress) {

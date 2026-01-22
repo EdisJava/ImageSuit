@@ -71,3 +71,12 @@ void Picture::setDescargada(bool descargada)
 {
     m_descargada = descargada;
 }
+void Picture::setExpirationDate(const QDate &date) {
+    m_expirationDate = date;
+
+}
+
+QDate Picture::expirationDate() const {
+    return m_expirationDate;
+}
+
