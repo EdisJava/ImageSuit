@@ -55,4 +55,7 @@ compile_commands.json
 *_qmlcache.qrc
 
 #Compilation directorys
-/*build*/***
+build/
+build-*/
+**/build/
+**/build-*/
