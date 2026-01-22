@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/translations">
+        <file>translations/app_es.qm</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file>info.png</file>
+        <file>open.png</file>
+        <file>favorito.png</file>
+        <file>download.png</file>
+        <file>delete.png</file>
+        <file>back.png</file>
+        <file>find.png</file>
+        <file>logo.png</file>
+    </qresource>
+</RCC>
