@@ -2,6 +2,30 @@
 #include <QPainter>
 #include <QMouseEvent>
 
+/**
+ * @file imagecarddelegate.cpp
+ * @brief Delegate que pinta una tarjeta de imagen y gestiona clicks sobre botones integrados.
+ *
+ * Esta versión utiliza la implementación exacta que proporcionaste. He añadido
+ * comentarios Doxygen para documentar las funciones principales y facilitar su lectura.
+ *
+ * NOTA: no he cambiado la lógica funcional; sólo añadí comentarios y documentación.
+ */
+
+/**
+ * @brief Calcula los rectángulos locales (relativos al área de la tarjeta) para
+ *        los botones y la barra de progreso.
+ *
+ * Los rects devueltos son relativos al origen de la tarjeta (no son coordenadas
+ * del viewport). El comportamiento varía según el modo (Grid/List).
+ *
+ * @param size Tamaño disponible para la tarjeta.
+ * @param mode Modo de vista (Grid o List).
+ * @param favR Rect para el botón favorito (salida).
+ * @param infR Rect para el botón de información (salida).
+ * @param delR Rect para el botón eliminar (salida).
+ * @param progR Rect para la barra de progreso (salida).
+ */
 static void getRectsLocal(const QSize &size, ImageCardDelegate::ViewMode mode,
                           QRect &favR, QRect &infR, QRect &delR, QRect &progR)
 {
@@ -24,8 +48,21 @@ static void getRectsLocal(const QSize &size, ImageCardDelegate::ViewMode mode,
     }
 }
 
-void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
-                              const QModelIndex &index) const
+/**
+ * @brief Dibuja la tarjeta de imagen.
+ *
+ * Se utiliza option.rect ajustado (margen interior) y painter->translate(r.topLeft())
+ * para dibujar contenidos relativos al origen de la tarjeta. Dibuja:
+ *  - fondo redondeado,
+ *  - icono/imagen y texto,
+ *  - barra de progreso (si aplica),
+ *  - botones circulares (favorito, info, eliminar).
+ *
+ * @param painter Puntero al QPainter ya inicializado.
+ * @param option Opciones de estilo/rect del item.
+ * @param index Índice del modelo a pintar.
+ */
+void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
@@ -119,9 +156,20 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     painter->restore();
 }
 
-bool ImageCardDelegate::editorEvent(QEvent *event, QAbstractItemModel *model,
-                                    const QStyleOptionViewItem &option,
-                                    const QModelIndex &index)
+/**
+ * @brief Maneja eventos de ratón para detectar clicks sobre botones dentro de la tarjeta.
+ *
+ * Esta implementación original:
+ *  - calcula clickPos relativo al rect ajustado y verifica contains() en los rects locales,
+ *  - emite favoriteToggled/infoRequested/deleteRequested o doubleClicked según corresponda.
+ *
+ * @param event Evento entrante.
+ * @param model Modelo asociado (no usado).
+ * @param option Opciones de estilo/rect proporcionadas por la vista.
+ * @param index Índice del item sobre el que se recibió el evento.
+ * @return true si el evento fue consumido por el delegado; false si debe dejarse pasar.
+ */
+bool ImageCardDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index)
 {
     if (event->type() == QEvent::MouseButtonPress) {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
@@ -172,8 +220,14 @@ bool ImageCardDelegate::editorEvent(QEvent *event, QAbstractItemModel *model,
     return false;
 }
 
-QSize ImageCardDelegate::sizeHint(const QStyleOptionViewItem &option,
-                                  const QModelIndex &index) const
+/**
+ * @brief Devuelve el tamaño sugerido para un item según el modo.
+ *
+ * En modo Grid devuelve un tamaño fijo. En modo List devuelve un tamaño con
+ * ancho fijo (aquí fijado a 400) y altura 85. Puedes optar por usar option.rect.width()
+ * para que ocupe el ancho del viewport (más flexible).
+ */
+QSize ImageCardDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     Q_UNUSED(index);
     if (m_mode == Grid) {

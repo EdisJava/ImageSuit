@@ -16,8 +16,9 @@ class SUITECORE_EXPORT PictureManager : public QObject
 public:
     explicit PictureManager(QObject* parent = nullptr);
 
-    // Métodos de configuración de rutas (SOLO DECLARACIÓN)
     void setBasePath(const QString& path);
+    void removeDownloaded(const Picture& picture);
+
     QString getDownloadedJsonPath() const;
     QString getImagesFolderPath() const;
     QVector<Picture> notDownloaded() const;
@@ -30,15 +31,14 @@ public:
     bool loadDownloaded(const QString& filepath);
     bool saveDownloaded(const QString& filepath);
 
-    // IMPORTANTE: Cambiado a recibir Picture para evitar fallos de índice
-    void removeDownloaded(const Picture& picture);
 
     int indexOf(const QString& name) const;
 
     // Acceso a las listas
     const QList<Picture>& pictures() const;
-    QList<Picture> favorites() const;
     const QList<Picture>& allPictures() const;
+
+    QList<Picture> favorites() const;
     QList<Picture> toDownload() const;
     QList<Picture> downloaded() const;
 

@@ -3,23 +3,57 @@
 #include <QPixmap>
 #include <QDebug>
 
+/**
+ * @file ImageViewer.cpp
+ * @brief Visor modal sencillo para mostrar una imagen con su nombre y descripción.
+ *
+ * ImageViewer es un QWidget configurado como diálogo (flags Qt::Dialog) que muestra:
+ * - un QLabel con la imagen escalada,
+ * - etiquetas con nombre y descripción,
+ * - un botón "back" que cierra el visor.
+ *
+ * Las imágenes se cargan desde una ruta/URL local usando QPixmap. Se guarda la
+ * QPixmap cargada en m_currentPixmap para poder reescalarla en resizeEvent sin
+ * volver a leer del disco.
+ *
+ * Nota: actualmente el escalado en el label usa Qt::IgnoreAspectRatio tal como
+ * se hizo en la versión original. Si prefieres mantener la proporción de la
+ * imagen, cambia a Qt::KeepAspectRatio en los llamados a scaled().
+ */
+
+/**
+ * @brief Constructor.
+ *
+ * Configura la interfaz (ui) y las propiedades de la ventana (como diálogo).
+ * Conecta el botón de retroceso a close().
+ *
+ * @param parent Widget padre opcional.
+ */
 ImageViewer::ImageViewer(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ImageViewer)
 {
     ui->setupUi(this);
 
-    // Configuración de ventana emergente
+    // Configuración de ventana emergente: estilo de diálogo con título y botón cerrar.
     this->setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    this->setWindowTitle("Visor de Imagen");
+    this->setWindowTitle(tr("Visor de Imagen"));
 
+    // Cerrar al pulsar el botón "back"
     connect(ui->backButton, &QPushButton::clicked, this, &ImageViewer::close);
 }
 
-ImageViewer::~ImageViewer() {
-    delete ui;
-}
-
+/**
+ * @brief Muestra una Picture en el visor.
+ *
+ * - Actualiza las etiquetas de nombre y descripción.
+ * - Intenta cargar la imagen desde picture.url() y, si tiene éxito, la guarda en
+ *   m_currentPixmap para futuros reescalados.
+ * - Si no se puede cargar la imagen, muestra un mensaje de error en el label.
+ * - Finalmente muestra la ventana y la trae al frente.
+ *
+ * @param picture Estructura Picture con datos (nombre, url, descripcion, ...).
+ */
 void ImageViewer::showPicture(const Picture &picture)
 {
     // 1. Mostrar texto informativo
@@ -31,34 +65,55 @@ void ImageViewer::showPicture(const Picture &picture)
 
     if (pixmap.isNull()) {
         qDebug() << "Error: No se pudo cargar la imagen en:" << picture.url();
-        ui->ImageLabel->setText("No se pudo cargar el archivo de imagen");
+        ui->ImageLabel->setText(tr("No se pudo cargar el archivo de imagen"));
         m_currentPixmap = QPixmap(); // Limpiar la imagen actual
     } else {
-        m_currentPixmap = pixmap; // Guardamos la original para los resizeEvent
+        // Guardamos la QPixmap original para poder reescalarla en resizeEvent
+        m_currentPixmap = pixmap;
 
-        // 3. Ajustar al tamaño actual del label manteniendo proporción
+        // 3. Ajustar al tamaño actual del label.
+        // Nota: se usa Qt::IgnoreAspectRatio en la versión original. Si quieres mantener
+        // la relación de aspecto, cambia a Qt::KeepAspectRatio.
         ui->ImageLabel->setPixmap(
             m_currentPixmap.scaled(ui->ImageLabel->size(),
                                    Qt::IgnoreAspectRatio,
                                    Qt::SmoothTransformation)
-        );
+            );
     }
 
+    // Mostrar el diálogo y traerlo al frente
     this->show();
-    this->raise(); // Traer al frente
+    this->raise();
     this->activateWindow();
 }
 
+/**
+ * @brief Evento de redimensionado de la ventana.
+ *
+ * Si hay una imagen cargada en memoria (m_currentPixmap), se reescala para ajustarla
+ * al nuevo tamaño del label, evitando volver a cargar desde disco.
+ *
+ * @param event Evento de redimensionado.
+ */
 void ImageViewer::resizeEvent(QResizeEvent* event)
 {
     QWidget::resizeEvent(event);
 
-    // Si la ventana cambia de tamaño, reajustamos la foto para que no se vea pequeña
+    // Si la imagen actual es válida, volver a asignarla escalada al label
     if (!m_currentPixmap.isNull()) {
         ui->ImageLabel->setPixmap(
             m_currentPixmap.scaled(ui->ImageLabel->size(),
                                    Qt::IgnoreAspectRatio,
                                    Qt::SmoothTransformation)
-        );
+            );
     }
+}
+
+/**
+ * @brief Destructor.
+ *
+ * Libera la UI creada. Los objetos hijos con parent se eliminarán automáticamente.
+ */
+ImageViewer::~ImageViewer() {
+    delete ui;
 }

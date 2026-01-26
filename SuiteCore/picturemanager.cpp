@@ -1,22 +1,59 @@
+/**
+ * @file PictureManager.cpp
+ * @brief Gestión en memoria y persistencia de objetos Picture.
+ *
+ * Esta clase actúa como un servicio central que mantiene la lista de imágenes
+ * (m_pictures), delega la carga/guardado en PictureDAO y expone métodos para
+ * descargar, marcar como favorito y eliminar imágenes descargadas.
+ *
+ * Las operaciones que simulan progreso usan QTimer para emitir señales
+ * (downloadProgress, pictureDownloaded, pictureRemoved).
+ *
+ * Nota: los métodos que modifican el estado guardan automáticamente el fichero
+ * de descargadas mediante saveDownloaded(getDownloadedJsonPath()).
+ */
+
 #include "PictureManager.h"
 #include "PictureDAO.h"
-#include "qdir.h"
-#include "qjsonarray.h"
-#include "qjsondocument.h"
-#include "qjsonobject.h"
+#include <QDir>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QTimer>
+#include <QDate>
 #include <QDebug>
 
+/**
+ * @brief Constructor.
+ * @param parent Objeto padre (por defecto nullptr).
+ */
 PictureManager::PictureManager(QObject* parent) : QObject(parent) {}
 
+/**
+ * @brief Establece la ruta base donde se guardan las imágenes y el JSON.
+ * @param path Ruta base (normalmente una carpeta del usuario).
+ */
 void PictureManager::setBasePath(const QString& path) {
     m_basePath = path;
 }
 
+/**
+ * @brief Obtiene la ruta del fichero downloaded.json (donde se serializa el estado).
+ * @return QString Ruta completa al fichero downloaded.json dentro de basePath.
+ */
 QString PictureManager::getDownloadedJsonPath() const {
     return m_basePath + "/downloaded.json";
 }
 
+/**
+ * @brief Carga un catálogo desde un fichero JSON y lo une al listado interno.
+ *
+ * Para cada Picture del catálogo se añade a m_pictures únicamente si no existe
+ * ya una entrada con la misma URL (evita duplicados).
+ *
+ * @param filepath Ruta del JSON de catálogo.
+ * @return true Siempre devuelve true (la función no reporta errores a nivel API).
+ */
 bool PictureManager::loadCatalog(const QString& filepath) {
     QList<Picture> catalog = PictureDAO::loadCatalog(filepath);
     for (const Picture& pic : catalog) {
@@ -29,6 +66,15 @@ bool PictureManager::loadCatalog(const QString& filepath) {
     return true;
 }
 
+/**
+ * @brief Carga el estado de las imágenes descargadas y actualiza los objetos internos.
+ *
+ * Para cada Picture cargada desde el JSON de descargadas, se busca el Picture
+ * correspondiente en m_pictures (por URL) y se actualizan sus flags y filePath.
+ *
+ * @param filepath Ruta del JSON de descargadas.
+ * @return true Siempre devuelve true (no se expone error en la firma).
+ */
 bool PictureManager::loadDownloaded(const QString& filepath) {
     QList<Picture> downloadedPics = PictureDAO::loadDownloaded(filepath);
     for (const Picture& pic : downloadedPics) {
@@ -44,11 +90,27 @@ bool PictureManager::loadDownloaded(const QString& filepath) {
     return true;
 }
 
-
+/**
+ * @brief Guarda el estado actual de las imágenes descargadas en el JSON correspondiente.
+ * @param filepath Ruta destino donde persistir las descargadas.
+ * @return true si la operación de escritura tuvo éxito, false en caso contrario.
+ */
 bool PictureManager::saveDownloaded(const QString& filepath) {
     return PictureDAO::saveDownloaded(m_pictures, filepath);
 }
 
+/**
+ * @brief Simula la descarga de una imagen indicada por índice dentro de la lista "toDownload()".
+ *
+ * Este método:
+ *  - crea un QTimer que actúa como simulador de progreso,
+ *  - emite downloadProgress(progress, nombre) periódicamente,
+ *  - cuando el progreso alcanza 100 marca la imagen como descargada,
+ *    asigna filePath y expirationDate (si no lo tenía),
+ *  - guarda el estado descargado y emite pictureDownloaded(p).
+ *
+ * @param index Índice relativo dentro de la lista devuelta por toDownload().
+ */
 void PictureManager::downloadPicture(int index) {
     QList<Picture> list = toDownload();
     if (index < 0 || index >= list.size()) return;
@@ -69,13 +131,14 @@ void PictureManager::downloadPicture(int index) {
                     p.setDescargada(true);
                     p.setFilePath(m_basePath + "/images/" + p.nombre() + ".jpg");
 
-                    // Solo asignamos fecha si aún no tiene
+                    // Si no tiene fecha de caducidad válida, asignar una por defecto.
+                    // Aquí hay una regla de ejemplo para marcar una imagen concreta como caducada.
                     if (!p.expirationDate().isValid()) {
                         if (p.nombre() == "Tranvia entre arboles") {
-                            // Esta imagen estará caducada
+                            // Esta imagen la marcamos explícitamente como caducada (ejemplo).
                             p.setExpirationDate(QDate::currentDate().addDays(-3));
                         } else {
-                            // Las demás estarán válidas
+                            // El resto tendrán 30 días de validez por defecto.
                             p.setExpirationDate(QDate::currentDate().addDays(30));
                         }
                     }
@@ -94,8 +157,15 @@ void PictureManager::downloadPicture(int index) {
     timer->start(50);
 }
 
-
-
+/**
+ * @brief Elimina (marca como no descargada) una imagen y simula progreso de eliminación.
+ *
+ * Busca el Picture por URL en m_pictures, simula un progreso con QTimer y cuando
+ * finaliza marca la imagen como no descargada, desmarca el favorito y emite
+ * pictureRemoved(m_pictures[i]) además de saveDownloaded(...).
+ *
+ * @param picture Picture a eliminar (por valor; se compara su URL).
+ */
 void PictureManager::removeDownloaded(const Picture& picture) {
     // Buscar el índice primero
     int foundIndex = -1;
@@ -108,7 +178,7 @@ void PictureManager::removeDownloaded(const Picture& picture) {
 
     if (foundIndex == -1) return;
 
-    // Copiar el nombre para usarlo en el timer
+    // Copiar datos necesarios para el timer/lambda
     QString pictureName = m_pictures[foundIndex].nombre();
     QString pictureUrl = m_pictures[foundIndex].url();
 
@@ -131,7 +201,7 @@ void PictureManager::removeDownloaded(const Picture& picture) {
                     m_pictures[i].setDescargada(false);
                     m_pictures[i].setFavorito(false);
                     saveDownloaded(getDownloadedJsonPath());
-                    emit downloadProgress(-1, pictureName);
+                    emit downloadProgress(-1, pictureName); // -1 puede significar "sin progreso"
                     emit pictureRemoved(m_pictures[i]);
                     break;
                 }
@@ -142,6 +212,13 @@ void PictureManager::removeDownloaded(const Picture& picture) {
     timer->start(100);
 }
 
+/**
+ * @brief Alterna la marca de favorito para un índice real en m_pictures.
+ *
+ * Este método cambia el flag favorito y persiste el estado inmediatamente.
+ *
+ * @param indexReal Índice dentro de m_pictures.
+ */
 void PictureManager::toggleFavorite(int indexReal) {
     if (indexReal >= 0 && indexReal < m_pictures.size()) {
         m_pictures[indexReal].setFavorito(!m_pictures[indexReal].favorito());
@@ -149,21 +226,42 @@ void PictureManager::toggleFavorite(int indexReal) {
     }
 }
 
+/**
+ * @brief Devuelve la lista de imágenes marcadas como descargadas.
+ * @return QList<Picture> Lista filtrada de imágenes con descargada() == true.
+ */
 QList<Picture> PictureManager::downloaded() const {
     QList<Picture> list;
     for (const Picture& p : m_pictures) if (p.descargada()) list.append(p);
     return list;
 }
 
+/**
+ * @brief Devuelve la lista de imágenes que aún no están descargadas.
+ * @return QList<Picture> Lista filtrada de imágenes con descargada() == false.
+ */
 QList<Picture> PictureManager::toDownload() const {
     QList<Picture> list;
     for (const Picture& p : m_pictures) if (!p.descargada()) list.append(p);
     return list;
 }
+
+/**
+ * @brief Acceso const a todas las imágenes gestionadas.
+ * @return const QList<Picture>& Referencia const a la lista interna m_pictures.
+ */
 const QList<Picture>& PictureManager::allPictures() const {
     return m_pictures;
 }
 
+/**
+ * @brief Alterna favorito buscando por nombre.
+ *
+ * Si se encuentra el primer elemento con el nombre dado, se alterna su flag
+ * favorito y se persiste el estado.
+ *
+ * @param name Nombre de la imagen a buscar.
+ */
 void PictureManager::toggleFavoriteByName(const QString& name) {
     for (int i = 0; i < m_pictures.size(); ++i) {
         if (m_pictures[i].nombre() == name) {
@@ -174,6 +272,13 @@ void PictureManager::toggleFavoriteByName(const QString& name) {
     }
 }
 
+/**
+ * @brief Marca como no descargada la imagen con el nombre dado y emite pictureRemoved.
+ *
+ * Persiste el cambio y emite la señal correspondiente.
+ *
+ * @param name Nombre de la imagen a eliminar (marcar como no descargada).
+ */
 void PictureManager::removeDownloadedByName(const QString& name) {
     for (int i = 0; i < m_pictures.size(); ++i) {
         if (m_pictures[i].nombre() == name) {
@@ -184,7 +289,12 @@ void PictureManager::removeDownloadedByName(const QString& name) {
             return;
         }
     }
-    }
+}
+
+/**
+ * @brief Devuelve las imágenes que no están descargadas en un QVector (alternativa a toDownload()).
+ * @return QVector<Picture> Vector con las imágenes no descargadas.
+ */
 QVector<Picture> PictureManager::notDownloaded() const {
     QVector<Picture> result;
     for (const auto &pic : allPictures()) {  // allPictures() devuelve todas

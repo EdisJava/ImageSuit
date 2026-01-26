@@ -8,18 +8,21 @@ class ImageCardDelegate : public QStyledItemDelegate {
 public:
     enum ViewMode { Grid, List };
     enum ItemDataRole {
-        FavoriteRole = Qt::UserRole + 1,   // bool: es favorita
-        DownloadedRole = Qt::UserRole + 2, // bool: está descargada (muestra botón eliminar)
-        ProgressRole = Qt::UserRole + 5,   // int: progreso de descarga (0-100, -1 = sin descarga)
-        ExpiredRole = Qt::UserRole + 6     // bool: imagen caducada
+        FavoriteRole = Qt::UserRole + 1,
+        DownloadedRole = Qt::UserRole + 2,
+        ProgressRole = Qt::UserRole + 5,
+        ExpiredRole = Qt::UserRole + 6
     };
+
     explicit ImageCardDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent), m_mode(Grid) {}
 
     void setViewMode(ViewMode mode) { m_mode = mode; }
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+
     ViewMode viewMode() const { return m_mode; }
 
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     bool editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index) override;
+
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
 signals:

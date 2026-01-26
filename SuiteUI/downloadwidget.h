@@ -17,7 +17,6 @@ public:
     void refreshList();
     void setViewMode(ImageCardDelegate::ViewMode mode);
 
-    // MÉTODOS PÚBLICOS PARA SINCRONIZACIÓN
     void applyExternalFilter(const QString &text);
     void applyExternalViewMode(ImageCardDelegate::ViewMode mode);
 

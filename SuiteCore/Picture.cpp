@@ -41,7 +41,12 @@ bool Picture::descargada() const
     return m_descargada;
 }
 
-// Setters
+QDate Picture::expirationDate() const {
+    return m_expirationDate;
+}
+
+//Setters
+
 void Picture::setNombre(const QString& nombre)
 {
     m_nombre = nombre;
@@ -76,7 +81,5 @@ void Picture::setExpirationDate(const QDate &date) {
 
 }
 
-QDate Picture::expirationDate() const {
-    return m_expirationDate;
-}
+
 
