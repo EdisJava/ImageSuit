@@ -1,0 +1,18 @@
+[
+    {
+        "nombre": "Tranvia entre arboles",
+        "url": "C:/Users/Edgar/Pictures/ImageSuit/tranvia.jpeg",
+        "descripcion": "Tranvia rojo entre arboles en otoño",
+        "favorito": false,
+        "descargada": false,
+        "expirationDate": "2026-01-19"
+    },
+    {
+        "nombre": "Paisaje Montaña",
+        "url": "C:/Users/Edgar/Pictures/ImageSuit/montaña.jpeg",
+        "descripcion": "Paisaje de montaña",
+        "favorito": false,
+        "descargada": false,
+        "expirationDate": "2026-12-19"
+    }
+]

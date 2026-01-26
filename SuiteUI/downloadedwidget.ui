@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DownloadedWidget</class>
+ <widget class="QWidget" name="DownloadedWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1051</width>
+    <height>809</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QFrame" name="frame_2">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>80</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>50</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QFrame {
+    background-color: #FFFFFF;
+    border-radius: 8px;
+    border: 1px solid #E0E0E0;
+}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Plain</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="6" column="6">
+       <widget class="QPushButton" name="btnFilterFavorites">
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: transparent; /* sin color de fondo */
+    border: none; /* sin marco */
+    padding: 6px; 
+}
+
+QPushButton:hover {
+    background-color: rgba(255, 165, 0, 0.2); /* naranja suave al pasar el cursor */
+    border-radius: 6px;
+}
+
+QPushButton:pressed {
+    background-color: rgba(255, 165, 0, 0.4);
+}</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/icons/favorito.png</normaloff>
+          <activeoff>:/icons/favoritoOFF.png</activeoff>
+          <activeon>:/icons/favorito.png</activeon>:/icons/favorito.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>200</horstretch>
+          <verstretch>30</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    background: transparent;
+    font-size: 14px;
+    font-weight: normal;
+    color: #2C3E50;
+    border: none;           /* Sin borde */
+}</string>
+        </property>
+        <property name="text">
+         <string>Downloaded       </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QLabel" name="namelabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    background: transparent;
+    font-size: 14px;
+    font-weight: normal;
+    color: #2C3E50;
+    border: none;           /* Sin borde */
+}</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="6" rowspan="2">
+       <widget class="QPushButton" name="toggleViewButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: transparent; /* sin color de fondo */
+    border: none; /* sin marco */
+    padding: 6px; 
+}
+
+QPushButton:hover {
+    background-color: rgba(255, 165, 0, 0.2); /* naranja suave al pasar el cursor */
+    border-radius: 6px;
+}
+
+QPushButton:pressed {
+    background-color: rgba(255, 165, 0, 0.4);
+}
+</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/icons/ajustes.png</normaloff>:/icons/ajustes.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QPushButton" name="searchButton">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: transparent; /* sin color de fondo */
+    border: none; /* sin marco */
+    padding: 6px; 
+}
+
+QPushButton:hover {
+    background-color: rgba(255, 165, 0, 0.2); /* naranja suave al pasar el cursor */
+    border-radius: 6px;
+}
+
+QPushButton:pressed {
+    background-color: rgba(255, 165, 0, 0.4);
+}
+</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/icons/find.png</normaloff>:/icons/find.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="searchLineEdit">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLineEdit {
+    background-color: #FFFFFF;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+ 	 font-size: 14px;
+    color: #2C3E50;
+}
+
+QLineEdit:focus {
+    border: 1px solid #3B82F6;  /* Azul cuando está activo */
+    outline: none;
+}</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+          <horstretch>200</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>300</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    background: transparent;
+    font-size: 14px;
+    font-weight: normal;
+    color: #2C3E50;
+    border: none;           /* Sin borde */
+}</string>
+        </property>
+        <property name="text">
+         <string>Introduce the name who are you searching for</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
+       <widget class="QLabel" name="label_4">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    background: transparent;
+    font-size: 14px;
+    font-weight: normal;
+    color: #2C3E50;
+    border: none;           /* Sin borde */
+}</string>
+        </property>
+        <property name="text">
+         <string>Change View</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="5">
+       <widget class="QLabel" name="label_3">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    background: transparent;
+    font-size: 14px;
+    font-weight: normal;
+    color: #2C3E50;
+    border: none;           /* Sin borde */
+}</string>
+        </property>
+        <property name="text">
+         <string>Toggle Favourite</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QListView" name="DownloadedPictureList">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>670</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QListView {
+    background-color:  rgba(240, 240, 240, 0.9);       /* Fondo claro */
+    color: #000000;                  /* Texto */
+    alternate-background-color: #f5f5f5; /* Filas alternadas */
+}
+
+QListView::item:selected {
+    background-color: #87cefa;       /* Color al seleccionar */
+    color: #000000;                  /* Texto al seleccionar */
+}</string>
+     </property>
+     <property name="resizeMode">
+      <enum>QListView::ResizeMode::Adjust</enum>
+     </property>
+     <property name="spacing">
+      <number>12</number>
+     </property>
+     <property name="viewMode">
+      <enum>QListView::ViewMode::IconMode</enum>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="resource.qrc"/>
+ </resources>
+ <connections/>
+</ui>
