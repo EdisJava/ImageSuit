@@ -54,14 +54,34 @@ QString PictureManager::getDownloadedJsonPath() const {
  * @param filepath Ruta del JSON de catálogo.
  * @return true Siempre devuelve true (la función no reporta errores a nivel API).
  */
-bool PictureManager::loadCatalog(const QString& filepath) {
-    QList<Picture> catalog = PictureDAO::loadCatalog(filepath);
-    for (const Picture& pic : catalog) {
-        bool exists = false;
-        for (const Picture& p : m_pictures) {
-            if (p.url() == pic.url()) { exists = true; break; }
-        }
-        if (!exists) m_pictures.append(pic);
+bool PictureManager::loadCatalog(const QString& filepath)
+{
+    QFile file(filepath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "No se pudo abrir el JSON:" << filepath;
+        return false;
+    }
+
+    QByteArray data = file.readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    if (!doc.isArray()) return false;
+
+    QJsonArray array = doc.array();
+    m_pictures.clear();
+
+    for (auto value : array) {
+        QJsonObject obj = value.toObject();
+
+        // Obtener URL relativa del JSON
+        QString relativeUrl = obj["url"].toString();
+
+        // Convertir a ruta absoluta
+        QString absoluteUrl = resolveImagePath(relativeUrl);
+
+        Picture pic(obj["nombre"].toString(),
+                    absoluteUrl,  // Usar ruta absoluta
+                    obj["descripcion"].toString());
+        m_pictures.append(pic);
     }
     return true;
 }
@@ -301,4 +321,20 @@ QVector<Picture> PictureManager::notDownloaded() const {
         if (!pic.descargada()) result.append(pic);
     }
     return result;
+}
+
+/**
+ * @brief resuelve las rutas de las imagenes
+ * @param relativePath
+ * @return  QDir(m_basePath).filePath(relativePath); ruta obsoluta desde el basepath
+ */
+
+QString PictureManager::resolveImagePath(const QString& relativePath) const
+{
+    if (QFileInfo(relativePath).isAbsolute()) {
+        return relativePath;  // Ya es absoluta
+    }
+
+
+    return QDir(m_basePath).filePath(relativePath);
 }

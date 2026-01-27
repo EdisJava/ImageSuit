@@ -12,10 +12,12 @@
 
 #include "PictureDAO.h"
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QDebug>
+#include <QDir>
 
 /**
  * @brief Guarda una lista de Picture en un fichero JSON.
@@ -153,36 +155,30 @@ QList<Picture> PictureDAO::loadCatalog(const QString& filepath)
 bool PictureDAO::saveDownloaded(const QList<Picture>& pictures, const QString& filepath)
 {
     QJsonArray array;
+    QDir baseDir(QFileInfo(filepath).absolutePath());
+
     for (const Picture& pic : pictures) {
         if (!pic.descargada()) continue;
 
         QJsonObject obj;
         obj["nombre"] = pic.nombre();
-        obj["url"] = pic.url();
-        obj["descripcion"] = pic.descripcion();
-        obj["favorito"] = pic.favorito();
-        obj["descargada"] = pic.descargada();
 
-        // Si no tiene fecha de caducidad válida, establecer una por defecto (7 días)
-        if (!pic.expirationDate().isValid()) {
-            QDate newExp = QDate::currentDate().addDays(7);
-            obj["expirationDate"] = newExp.toString(Qt::ISODate);
-        } else {
-            obj["expirationDate"] = pic.expirationDate().toString(Qt::ISODate);
-        }
+        // Convertir ruta absoluta a relativa
+        QString relativePath = baseDir.relativeFilePath(pic.url());
+        obj["url"] = relativePath;
+
+        obj["descripcion"] = pic.descripcion();
+        obj["descargada"] = pic.descargada();
+        obj["favorito"] = pic.favorito();
 
         array.append(obj);
     }
 
     QJsonDocument doc(array);
     QFile file(filepath);
-    if (!file.open(QIODevice::WriteOnly)) {
-        qWarning() << "No se pudo guardar descargadas:" << filepath;
-        return false;
-    }
+    if (!file.open(QIODevice::WriteOnly)) return false;
 
     file.write(doc.toJson());
-    file.close();
     return true;
 }
 

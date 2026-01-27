@@ -1,10 +1,9 @@
 [
     {
         "descargada": true,
-        "descripcion": "Paisaje de montaña",
-        "expirationDate": "2026-02-02",
+        "descripcion": "Tranvia rojo entre arboles en otoño",
         "favorito": false,
-        "nombre": "Paisaje Montaña",
-        "url": "C:/Users/Edgar/Pictures/ImageSuit/montaña.jpeg"
+        "nombre": "Tranvia entre arboles",
+        "url": "images/tranvia.jpeg"
     }
 ]

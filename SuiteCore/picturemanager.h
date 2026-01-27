@@ -22,6 +22,7 @@ public:
     QString getDownloadedJsonPath() const;
     QString getImagesFolderPath() const;
     QVector<Picture> notDownloaded() const;
+    QString resolveImagePath(const QString& relativePath) const;
 
     // Carga y guardado
     bool loadFromJson(const QString& filepath);

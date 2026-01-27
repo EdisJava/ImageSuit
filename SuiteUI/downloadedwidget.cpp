@@ -45,6 +45,14 @@ DownloadedWidget::DownloadedWidget(QWidget *parent)
 {
     ui->setupUi(this);
 
+    //Quitar focus al boton  filtrar favoritos
+    ui->btnFilterFavorites->setFocusPolicy(Qt::NoFocus);
+
+    //Label de informacion de busqueda
+    ui->LabelFilterFavourites->setText(tr("Showing all"));
+    ui->LabelFilterFavourites->setVisible(true);
+
+
     // Configurar proxy model para la lista de descargados
     m_downloadedProxy->setSourceModel(m_downloadedModel);
     m_downloadedProxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
@@ -176,20 +184,21 @@ void DownloadedWidget::setupConnections() {
     connect(m_pictureManager, &PictureManager::downloadProgress,
             this, &DownloadedWidget::onDownloadProgress);
 
-    // Mostrar nombre de la imagen seleccionada en la etiqueta
-    connect(ui->DownloadedPictureList->selectionModel(), &QItemSelectionModel::currentChanged,
-            this, [this](const QModelIndex &current, const QModelIndex &previous){
-                Q_UNUSED(previous);
-                if (current.isValid() && m_downloadedProxy) {
-                    QModelIndex sourceIdx = m_downloadedProxy->mapToSource(current);
-                    ui->namelabel->setText(sourceIdx.data(Qt::DisplayRole).toString());
-                } else {
-                    ui->namelabel->setText(tr("Ninguna imagen seleccionada"));
-                }
-            });
+
 
     // Botón filtro de favoritos: al alternar invoca refreshList()
     connect(ui->btnFilterFavorites, &QPushButton::toggled, this, &DownloadedWidget::refreshList);
+
+    connect(ui->btnFilterFavorites, &QPushButton::toggled,
+            this, [this](bool checked) {
+                ui->LabelFilterFavourites->setText(
+                    checked ? tr("Showing favourites")
+                            : tr("Showing all")
+                    );
+            });
+
+
+
 }
 
 /**

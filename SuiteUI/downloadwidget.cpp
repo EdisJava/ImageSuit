@@ -48,16 +48,7 @@ DownloadWidget::DownloadWidget(QWidget *parent)
     // Evitar drag & drop para que los usuarios no reordenen la vista manualmente
     DownloadedWidget::disableDragDrop(ui->DownloadPictureList);
 
-    // Actualizar etiqueta de nombre cuando cambia la selección
-    connect(ui->DownloadPictureList->selectionModel(), &QItemSelectionModel::currentChanged,
-            this, [this](const QModelIndex &current, const QModelIndex &previous) {
-                Q_UNUSED(previous);
-                if (current.isValid()) {
-                    ui->nameLabel->setText(current.data(Qt::DisplayRole).toString());
-                } else {
-                    ui->nameLabel->setText(tr("Ninguna imagen seleccionada"));
-                }
-            });
+
 
     // Botón "Download All" -> inicia la descarga masiva
     connect(ui->DownloadAllButton, &QPushButton::clicked, this, &DownloadWidget::onDownloadAllClicked);
