@@ -337,7 +337,7 @@ void PictureManager::downloadPictureByUrl(const QString &url, int seconds)
     const auto list = toDownload();
     for (const Picture &pic : list) {
         if (pic.url() == url) {
-            downloadPicture(pic, seconds); // ✔ ahora usa la versión correcta
+            downloadPicture(pic, seconds); //  ahora usa la versión correcta
             return;
         }
     }
@@ -349,7 +349,7 @@ void PictureManager::downloadPicture(int index)
     if (index < 0 || index >= list.size()) return;
 
     int randomSeconds = QRandomGenerator::global()->bounded(10, 61);
-    downloadPicture(list[index], randomSeconds); // ✔ usa la versión correcta
+    downloadPicture(list[index], randomSeconds); //  usa la versión correcta
 }
 
 void PictureManager::downloadPicture(int index, int seconds) {

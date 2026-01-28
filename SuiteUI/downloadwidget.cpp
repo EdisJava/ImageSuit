@@ -143,18 +143,21 @@ void DownloadWidget::refreshList()
  * problemas si se invoca desde contextos distintos.
  */
 void DownloadWidget::onDownloadAllClicked() {
-    if (!m_pictureManager || m_pictureManager->toDownload().isEmpty()) return;
+    if (!m_pictureManager || m_pictureManager->toDownload().isEmpty() || m_isDownloadingAll)
+        return;
 
     m_isDownloadingAll = true;
     ui->DownloadAllButton->setEnabled(false);
 
-    auto listToDownload = m_pictureManager->toDownload(); // Copia de la lista actual
+    emit massDownloadStarted();  // <--- Esto bloquea el botón de borrar
 
-    for (const Picture &pic : listToDownload) {
-        int randomSeconds = QRandomGenerator::global()->bounded(10, 61);
-        m_pictureManager->downloadPicture(pic, randomSeconds);
+    auto listToDownload = m_pictureManager->toDownload();
+
+    for (const Picture &p : listToDownload) {
+        m_pictureManager->downloadPicture(p, QRandomGenerator::global()->bounded(10, 61));
     }
 }
+
 
 void DownloadWidget::downloadNextInMass() {
     if (!m_pictureManager) return;
@@ -187,16 +190,19 @@ void DownloadWidget::downloadNextInMass() {
  * @param picture Picture descargada (no utilizada directamente aquí).
  */
 void DownloadWidget::onPictureDownloaded(const Picture &picture) {
-    refreshList(); // Refresca visualmente, mantiene barras de progreso de otras descargas
+    Q_UNUSED(picture);
+    refreshList();
 
-    // Si estamos descargando masivamente, continuar con la siguiente
-    if (m_isDownloadingAll) {
-        downloadNextInMass();
+    if (m_isDownloadingAll && m_pictureManager && m_pictureManager->toDownload().isEmpty()) {
+        m_isDownloadingAll = false;
+        ui->DownloadAllButton->setEnabled(true);
+        emit massDownloadFinished();  // <--- Esto desbloquea el botón de borrar
+        QMessageBox::information(this, tr("Completado"), tr("Todas las imágenes se han descargado."));
     }
 
-    // Emitimos la señal normal
-    emit pictureDownloaded();
+    emit pictureDownloaded(picture);
 }
+
 
 
 
@@ -269,3 +275,4 @@ void DownloadWidget::disableDragDrop(QAbstractItemView* view) {
     view->setDefaultDropAction(Qt::IgnoreAction);
     view->setDragDropMode(QAbstractItemView::NoDragDrop);
 }
+

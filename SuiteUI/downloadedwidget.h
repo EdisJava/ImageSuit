@@ -7,6 +7,7 @@
 #include <QAbstractItemView>
 #include "PictureManager.h"
 #include "ImageCardDelegate.h"
+#include "ui_DownloadedWidget.h"
 
 class QCompleter;
 class QStringListModel;
@@ -31,6 +32,17 @@ public:
 
     static void disableDragDrop(QAbstractItemView* view);
 
+public slots:
+    void onMassDownloadStarted() {
+        m_delegate->setMassDownloadInProgress(true);
+        ui->DownloadedPictureList->viewport()->update();
+    }
+
+    void onMassDownloadFinished() {
+        m_delegate->setMassDownloadInProgress(false);
+        ui->DownloadedPictureList->viewport()->update();
+    }
+
 signals:
     void pictureDeleted();
     void openPicture(const Picture& picture);
@@ -42,6 +54,8 @@ private:
     void setupConnections();
     void updateViews();
     void onDownloadProgress(int progress, const QString& pictureName);
+    bool m_massDownloadInProgress = false;
+
 
     Ui::DownloadedWidget *ui;
     PictureManager* m_pictureManager = nullptr;

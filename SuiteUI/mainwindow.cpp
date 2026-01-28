@@ -72,6 +72,9 @@ MainWindow::MainWindow(QWidget *parent)
     // - Abrir el visor al solicitarlo desde descargadas.
     connect(ui->downloadedWidget, &DownloadedWidget::openPicture, imageViewer, &ImageViewer::showPicture);
 
+    connect(ui->downloadWidget, &DownloadWidget::massDownloadStarted, ui->downloadedWidget, &DownloadedWidget::onMassDownloadStarted);
+    connect(ui->downloadWidget, &DownloadWidget::massDownloadFinished, ui->downloadedWidget, &DownloadedWidget::onMassDownloadFinished);
+
     // - Sincronizar filtros y modo de vista entre widgets.
     connect(ui->downloadedWidget, &DownloadedWidget::searchTextChanged, ui->downloadWidget, &DownloadWidget::applyExternalFilter);
     connect(ui->downloadedWidget, &DownloadedWidget::viewModeToggled, ui->downloadWidget, &DownloadWidget::applyExternalViewMode);

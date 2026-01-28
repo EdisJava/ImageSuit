@@ -81,53 +81,41 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     // Colores según estado
     QColor borderColor = selected ? QColor(255, 165, 0) : QColor(220, 220, 220);
     QColor fillColor = Qt::white;
-
     if (expired) {
-        fillColor = QColor(255, 120, 120, 150);  // rojo suave semi-transparente
+        fillColor = QColor(255, 120, 120, 150);
         borderColor = selected ? QColor(255, 165, 0) : QColor(200, 0, 0);
     } else if (selected) {
         fillColor = QColor(255, 165, 0, 10);
         borderColor = QColor(255, 165, 0);
-    } else {
-        borderColor = QColor(220, 220, 220);
     }
 
-    // Dibujar fondo de la tarjeta
-    int borderWidth = selected ? 3 : 1;
-    painter->setPen(QPen(borderColor, borderWidth));
+    painter->setPen(QPen(borderColor, selected ? 3 : 1));
     painter->setBrush(fillColor);
     painter->drawRoundedRect(QRect(0, 0, s.width(), s.height()), 10, 10);
 
-    // Rects de botones
     QRect favR, infR, delR, progR;
     getRectsLocal(s, m_mode, favR, infR, delR, progR);
 
-    // Dibujar icono/imagen y texto
+    // Dibujar imagen
     QIcon icon = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
     int textBottomY = 0;
     if (m_mode == Grid) {
-        // Imagen grande
         painter->drawPixmap(QRect(10, 10, s.width() - 20, 130), icon.pixmap(150, 150));
         painter->setPen(Qt::black);
 
-        // Texto debajo de la imagen
         int textY = 145;
-        int textHeight = s.height() - textY - 45; // espacio hasta botones
-        QRect textRect(5, textY, s.width() - 10, textHeight);
-        painter->drawText(textRect, Qt::AlignCenter | Qt::AlignTop | Qt::TextWordWrap,
+        int textHeight = s.height() - textY - 45;
+        painter->drawText(QRect(5, textY, s.width() - 10, textHeight),
+                          Qt::AlignCenter | Qt::AlignTop | Qt::TextWordWrap,
                           index.data().toString());
-
-        textBottomY = textRect.top() + textRect.height();
-
-
+        textBottomY = textY + textHeight;
     } else {
-        // Modo List
         painter->drawPixmap(10, 10, 60, 60, icon.pixmap(60, 60));
         painter->setPen(Qt::black);
         painter->drawText(QRect(85, 5, favR.left() - 90, 40),
                           Qt::AlignCenter | Qt::AlignVCenter,
                           index.data().toString());
-        textBottomY = 10 + 60; // imagen + margen
+        textBottomY = 10 + 60;
     }
 
     // Barra de progreso
@@ -135,34 +123,32 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     if (progress >= 0) {
         QRect progressRect;
         if (m_mode == Grid) {
-            int margin = 5;
-            int buttonAreaHeight = 35; // altura reservada para botones
-            int progressHeight = 8;
-
-            int progY = std::min(textBottomY + margin, s.height() - buttonAreaHeight - progressHeight - margin);
-            progressRect = QRect(10, progY, s.width() - 20, progressHeight);
+            // --- BARRA ENCIMA DE LA IMAGEN ---
+            int bw = s.width() * 0.8;
+            int bh = 22;
+            progressRect = QRect((s.width() - bw) / 2, 64, bw, bh);
+            painter->setOpacity(0.85);
         } else {
-            progressRect = progR;
+            int bh = 18;
+            progressRect = QRect(progR.x(), (s.height() / 2) - (bh / 2) + 5, progR.width(), bh);
         }
 
-        // Fondo gris
         painter->setPen(Qt::NoPen);
         painter->setBrush(QColor(230, 230, 230));
         painter->drawRoundedRect(progressRect, 5, 5);
 
-        // Relleno naranja
         painter->setBrush(QColor(255, 165, 0));
         painter->drawRoundedRect(progressRect.left(), progressRect.top(),
                                  (progressRect.width() * progress) / 100,
                                  progressRect.height(), 5, 5);
 
-        // Texto %
+        painter->setOpacity(1.0);
         painter->setPen(Qt::black);
         painter->setFont(QFont("Arial", 8, QFont::Bold));
         painter->drawText(progressRect, Qt::AlignCenter, QString("%1%").arg(progress));
     }
 
-    // Lambda para dibujar botones circulares
+    // Lambda para dibujar botones
     auto drawButton = [&](const QRect &rect, const QString &text,
                           QColor background, QColor foreground) {
         painter->setBrush(background);
@@ -172,26 +158,27 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         painter->drawText(rect, Qt::AlignCenter, text);
     };
 
-    // Botón favorito
+    // Botones
     QVariant favoriteData = index.data(FavoriteRole);
     if (favoriteData.isValid()) {
         bool isFavorite = favoriteData.toBool();
-        drawButton(favR,
-                   isFavorite ? "★" : "☆",
-                   Qt::white,
-                   isFavorite ? QColor(255, 180, 0) : Qt::gray);
+        drawButton(favR, isFavorite ? "★" : "☆",
+                   Qt::white, isFavorite ? QColor(255, 180, 0) : Qt::gray);
     }
 
-    // Botón info
     drawButton(infR, "i", QColor(240, 240, 240), Qt::black);
 
-    // Botón eliminar
     if (index.data(DownloadedRole).toBool()) {
-        drawButton(delR, "✕", QColor(255, 230, 230), Qt::red);
+        if (m_massDownloadInProgress) {
+            drawButton(delR, "✕", QColor(200, 200, 200), Qt::lightGray);
+        } else {
+            drawButton(delR, "✕", QColor(255, 230, 230), Qt::red);
+        }
     }
 
     painter->restore();
 }
+
 
 /**
  * @brief Maneja eventos de ratón para detectar clicks sobre botones dentro de la tarjeta.
@@ -206,49 +193,45 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
  * @param index Índice del item sobre el que se recibió el evento.
  * @return true si el evento fue consumido por el delegado; false si debe dejarse pasar.
  */
-bool ImageCardDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index)
+bool ImageCardDelegate::editorEvent(QEvent *event, QAbstractItemModel *model,
+                                    const QStyleOptionViewItem &option,
+                                    const QModelIndex &index)
 {
-    if (event->type() == QEvent::MouseButtonPress) {
-        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
-
-        // Usar el mismo ajuste que en paint()
+    //  Bloquear clicks en eliminar durante descarga masiva
+    if (m_massDownloadInProgress) {
         QRect r = option.rect.adjusted(4, 4, -4, -4);
-
-        // Calcular posición del clic en coordenadas ABSOLUTAS primero
-        QPoint absoluteClickPos = mouseEvent->pos();
-
-        // Verificar si el clic está dentro del rectángulo del item
-        if (!option.rect.contains(absoluteClickPos)) {
-            return false;
-        }
-
-        // Ahora calcular la posición relativa al rectángulo ajustado
-        QPoint clickPos = absoluteClickPos - r.topLeft();
-
-        // Obtener rectángulos de botones con el tamaño ajustado
         QRect favR, infR, delR, progR;
         getRectsLocal(r.size(), m_mode, favR, infR, delR, progR);
 
-        // Click en favorito
+        if (delR.contains(static_cast<QMouseEvent*>(event)->pos() - r.topLeft())) {
+            return false; // Ignorar click sobre eliminar
+        }
+    }
+
+    if (event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        QRect r = option.rect.adjusted(4, 4, -4, -4);
+        QPoint clickPos = mouseEvent->pos() - r.topLeft();
+
+        QRect favR, infR, delR, progR;
+        getRectsLocal(r.size(), m_mode, favR, infR, delR, progR);
+
         if (favR.contains(clickPos) && index.data(FavoriteRole).isValid()) {
             emit favoriteToggled(index);
             return true;
         }
 
-        // Click en info
         if (infR.contains(clickPos)) {
             emit infoRequested(index);
             return true;
         }
 
-        // Click en eliminar (solo si está descargada)
         if (delR.contains(clickPos) && index.data(DownloadedRole).toBool()) {
             emit deleteRequested(index);
             return true;
         }
     }
 
-    // Doble click
     if (event->type() == QEvent::MouseButtonDblClick) {
         emit doubleClicked(index);
         return true;
@@ -256,6 +239,7 @@ bool ImageCardDelegate::editorEvent(QEvent *event, QAbstractItemModel *model, co
 
     return false;
 }
+
 
 /**
  * @brief Devuelve el tamaño sugerido para un item según el modo.

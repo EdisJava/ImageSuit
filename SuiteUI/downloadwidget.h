@@ -5,6 +5,7 @@
 #include <QStandardItemModel>
 #include "PictureManager.h"
 #include "ImageCardDelegate.h"
+#include "qpushbutton.h"
 
 namespace Ui { class DownloadWidget; }
 
@@ -23,13 +24,22 @@ public:
 
 signals:
 
-    void pictureDownloaded();
+    void pictureDownloaded(const Picture &picture);
+    void massDownloadStarted();
+    void massDownloadFinished();
 
 private slots:
     void onDownloadAllClicked();
     void onPictureDownloaded(const Picture& picture);
     void onDownloadProgress(int progress, const QString& pictureName);
     void downloadNextInMass();
+    void setMassDownloadInProgress(bool inProgress) {
+        if (m_deleteButton) {
+            m_deleteButton->setEnabled(!inProgress);
+        }
+    }
+
+
 private:
     Ui::DownloadWidget *ui;
     PictureManager* m_pictureManager = nullptr;
@@ -39,6 +49,7 @@ private:
     QString m_externalFilter; // Guarda el filtro que viene de fuera
     QHash<QString, int> m_progressCache;
     int m_pendingDownloads = 0;
+    QPushButton* m_deleteButton;
 
 };
 #endif

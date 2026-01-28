@@ -25,6 +25,12 @@ public:
 
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
+    void setMassDownloadInProgress(bool inProgress) {
+        m_massDownloadInProgress = inProgress;
+    }
+
+    bool isMassDownloadInProgress() const { return m_massDownloadInProgress; }
+
 signals:
     void favoriteToggled(const QModelIndex &index);
     void infoRequested(const QModelIndex &index);
@@ -33,6 +39,8 @@ signals:
 
 private:
     ViewMode m_mode;
+    bool m_massDownloadInProgress = false;
+
 };
 
 #endif

@@ -352,3 +352,22 @@ void DownloadedWidget::onDownloadProgress(int progress, const QString& pictureNa
 DownloadedWidget::~DownloadedWidget() {
     delete ui;
 }
+
+
+/*void DownloadedWidget::mousePressEvent(QMouseEvent *event) {
+    QModelIndex idx = indexAt(event->pos());
+    if (!idx.isValid()) return;
+
+    QRect delRect;
+    // suponiendo que tienes un método para obtener el rect del botón en el delegate
+    getRects(idx, delRect);
+
+    // Si click dentro del botón eliminar y hay descarga masiva en curso, ignoramos
+    if (delRect.contains(event->pos()) && m_massDownloadInProgress) {
+        return; // nada ocurre
+    }
+
+    // Si no, se ejecuta la lógica normal
+    QWidget::mousePressEvent(event);
+}
+*/
