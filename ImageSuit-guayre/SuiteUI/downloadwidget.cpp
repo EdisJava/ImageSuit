@@ -1,0 +1,231 @@
+/**
+ * @file DownloadWidget.cpp
+ * @brief Widget para mostrar y gestionar la lista de imágenes disponibles para descargar.
+ *
+ * Este widget presenta:
+ * - una QListView con delegado personalizado (ImageCardDelegate) que muestra las imágenes
+ *   que aún no están descargadas,
+ * - botones para iniciar descarga individual (doble clic) y descarga masiva ("Download All"),
+ * - sincronización con PictureManager para recibir progreso y completado de descargas.
+ *
+ * Comentarios en estilo Doxygen en español para facilitar la lectura y generar documentación.
+ */
+
+#include "DownloadWidget.h"
+#include "ui_DownloadWidget.h"
+#include "DownloadedWidget.h"
+#include <QMessageBox>
+#include <QMetaObject>
+#include <QStandardItemModel>
+#include <QListView>
+#include <QPushButton>
+#include <QDebug>
+#include <QRandomGenerator>
+#include <QtConcurrent>
+
+/**
+ * @brief Constructor.
+ *
+ * Inicializa la interfaz, el modelo visual y el delegado, configura la vista en
+ * modo icon (grid) y conecta las señales necesarias (selección, doble clic, botón).
+ *
+ * @param parent Widget padre (por defecto nullptr).
+ */
+DownloadWidget::DownloadWidget(QWidget *parent)
+    : QWidget(parent),
+    ui(new Ui::DownloadWidget),
+    m_model(new QStandardItemModel(this)),
+    m_delegate(new ImageCardDelegate(this)),
+    m_pictureManager(nullptr),
+    m_isDownloadingAll(false)
+{
+    ui->setupUi(this);
+
+    // Configurar lista y delegado
+    ui->DownloadPictureList->setModel(m_model);
+    ui->DownloadPictureList->setItemDelegate(m_delegate);
+    ui->DownloadPictureList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->DownloadPictureList->setViewMode(QListView::IconMode);
+
+    // Evitar drag & drop para que los usuarios no reordenen la vista manualmente
+    DownloadedWidget::disableDragDrop(ui->DownloadPictureList);
+
+
+
+    // Botón "Download All" -> inicia la descarga masiva
+    connect(ui->DownloadAllButton, &QPushButton::clicked, this, &DownloadWidget::onDownloadAllClicked);
+
+    // Doble clic sobre un item: inicia la descarga de ese item si no estamos en descarga masiva
+    connect(m_delegate, &ImageCardDelegate::doubleClicked, this, [this](const QModelIndex &idx){
+    if (m_pictureManager) {
+        QString name = idx.data(Qt::DisplayRole).toString();
+        int progress = idx.data(ImageCardDelegate::ProgressRole).toInt();
+
+        if (progress >= 0) return;
+
+        int randomSeconds = QRandomGenerator::global()->bounded(10, 61);
+        QtConcurrent::run([this, idx, randomSeconds]() {
+            m_pictureManager->downloadPicture(idx.row(), randomSeconds);
+        });
+    }
+});
+
+    // Info: mostrar URL en un mensaje informativo
+    connect(m_delegate, &ImageCardDelegate::infoRequested, this, [this](const QModelIndex &idx){
+        if (!m_pictureManager) return;
+        auto list = m_pictureManager->toDownload();
+        if (idx.row() >= 0 && idx.row() < list.size()) {
+            QMessageBox::information(this, tr("Info"), tr("URL: %1").arg(list.at(idx.row()).url()));
+        }
+    });
+}
+
+/**
+ * @brief Aplicar un modo de vista desde el exterior (sincronización con otros widgets).
+ *
+ * @param mode Nuevo modo de vista (Grid o List) que se aplica al delegado y la QListView.
+ */
+void DownloadWidget::applyExternalViewMode(ImageCardDelegate::ViewMode mode) {
+    m_delegate->setViewMode(mode);
+    ui->DownloadPictureList->setViewMode(mode == ImageCardDelegate::Grid ? QListView::IconMode : QListView::ListMode);
+    ui->DownloadPictureList->doItemsLayout();
+    ui->DownloadPictureList->viewport()->update();
+}
+
+/**
+ * @brief Aplicar un filtro externo de texto (sincronización con otros widgets).
+ *
+ * Guarda el filtro y refresca la lista.
+ *
+ * @param text Texto del filtro (se comparará en minúsculas).
+ */
+void DownloadWidget::applyExternalFilter(const QString &text) {
+    m_externalFilter = text.toLower();
+    refreshList();
+}
+
+/**
+ * @brief Reconstruye la lista de items a partir de PictureManager::toDownload().
+ *
+ * Aplica el filtro externo (m_externalFilter) y crea QStandardItem con roles
+ * adecuados para que el delegado los interprete:
+ * - Qt::DecorationRole: icon (URL)
+ * - FavoriteRole, DownloadedRole, ProgressRole
+ */
+void DownloadWidget::refreshList() {
+    m_model->clear();
+    if (!m_pictureManager) return;
+
+    for (const auto &pic : m_pictureManager->toDownload()) {
+        if (!m_externalFilter.isEmpty() && !pic.nombre().toLower().contains(m_externalFilter)) continue;
+        QStandardItem *item = new QStandardItem(pic.nombre());
+        item->setData(QIcon(pic.url()), Qt::DecorationRole);
+        item->setData(QVariant(), ImageCardDelegate::FavoriteRole);
+        item->setData(false, ImageCardDelegate::DownloadedRole);
+        item->setData(-1, ImageCardDelegate::ProgressRole);
+        m_model->appendRow(item);
+    }
+}
+
+/**
+ * @brief Slot invocado al pulsar "Download All".
+ *
+ * Inicia una descarga en cadena sobre el primer elemento disponible. La lógica
+ * encadena llamadas a downloadPicture(0) cada vez que llega la señal pictureDownloaded.
+ *
+ * Nota: se usa invokeMethod en la cola de eventos para proteger la llamada y evitar
+ * problemas si se invoca desde contextos distintos.
+ */
+void DownloadWidget::onDownloadAllClicked() {
+    if (!m_pictureManager || m_pictureManager->toDownload().isEmpty()) return;
+
+    m_isDownloadingAll = true;
+    ui->DownloadAllButton->setEnabled(false);
+
+    // Obtenemos la lista actual ANTES de entrar al bucle
+    auto listToDownload = m_pictureManager->toDownload();
+
+    for (int i = 0; i < listToDownload.size(); ++i) {
+        int randomSeconds = QRandomGenerator::global()->bounded(10, 61);
+        QtConcurrent::run([this, i, randomSeconds]() {
+            if (m_pictureManager) {
+                m_pictureManager->downloadPicture(i, randomSeconds);
+            }
+        });
+    }
+}
+/**
+ * @brief Slot que se llama cuando PictureManager emite pictureDownloaded.
+ *
+ * - Refresca la lista,
+ * - Si estamos descargando masivamente, lanza la siguiente descarga o finaliza y notifica al usuario.
+ *
+ * @param picture Picture descargada (no utilizada directamente aquí).
+ */
+void DownloadWidget::onPictureDownloaded(const Picture &picture) {
+    Q_UNUSED(picture);
+    refreshList();
+
+    if (m_isDownloadingAll && m_pictureManager) {
+        if (m_pictureManager->toDownload().isEmpty()) {
+            m_isDownloadingAll = false;
+            ui->DownloadAllButton->setEnabled(true); // <--- Aquí se reactiva
+            QMessageBox::information(this, tr("Completado"), tr("Todas las imágenes se han descargado."));
+        }
+    }
+    emit pictureDownloaded();
+}
+
+/**
+ * @brief Slot para recibir progreso de descarga de PictureManager.
+ *
+ * Actualiza el rol ProgressRole del item cuyo texto coincide con el nombre recibido.
+ *
+ * @param progress Valor de progreso (0-100).
+ * @param name Nombre de la imagen asociada al progreso.
+ */
+void DownloadWidget::onDownloadProgress(int progress, const QString &name) {
+    for (int i = 0; i < m_model->rowCount(); ++i) {
+        QStandardItem *it = m_model->item(i);
+        if (it && it->text() == name) {
+            it->setData(progress, ImageCardDelegate::ProgressRole);
+            // Forzar repaint del viewport para reflejar cambio en delegado
+            ui->DownloadPictureList->viewport()->update();
+            break;
+        }
+    }
+}
+
+/**
+ * @brief Asocia un PictureManager al widget y conecta sus señales.
+ *
+ * - Conecta pictureDownloaded y downloadProgress a los slots locales.
+ * - Llama a refreshList() para poblar la vista.
+ *
+ * @param manager Puntero al PictureManager; puede ser nullptr para desconectar.
+ */
+void DownloadWidget::setPictureManager(PictureManager *manager) {
+    if (m_pictureManager) {
+        // Desconectar del anterior para evitar conexiones duplicadas
+        disconnect(m_pictureManager, &PictureManager::pictureDownloaded, this, &DownloadWidget::onPictureDownloaded);
+        disconnect(m_pictureManager, &PictureManager::downloadProgress, this, &DownloadWidget::onDownloadProgress);
+    }
+
+    m_pictureManager = manager;
+
+    if (m_pictureManager) {
+        connect(m_pictureManager, &PictureManager::pictureDownloaded, this, &DownloadWidget::onPictureDownloaded);
+        connect(m_pictureManager, &PictureManager::downloadProgress, this, &DownloadWidget::onDownloadProgress);
+    }
+
+    refreshList();
+}
+
+/**
+ * @brief Destructor.
+ *
+ * Elimina la interfaz ui; los objetos hijos con parent serán liberados automáticamente.
+ */
+DownloadWidget::~DownloadWidget() {
+    delete ui;
+}

@@ -1,0 +1,16 @@
+[
+    {
+        "descargada": true,
+        "descripcion": "Un cuadrado rojo simple",
+        "favorito": false,
+        "nombre": "Cuadrado Rojo",
+        "url": "images/test.png"
+    },
+    {
+        "descargada": true,
+        "descripcion": "Un fondo de pantalla de windows",
+        "favorito": false,
+        "nombre": "Fondo de pantalla windows",
+        "url": "images/wallpaper"
+    }
+]

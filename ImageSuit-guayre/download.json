@@ -1,0 +1,34 @@
+[
+    {
+        "nombre": "Tranvia entre arboles",
+        "url": "images/tranvia.jpeg",
+        "descripcion": "Tranvia rojo entre arboles en otoño",
+        "favorito": false,
+        "descargada": false,
+        "expirationDate": "2026-01-19"
+    },
+    {
+        "nombre": "Paisaje Montaña",
+        "url": "images/montaña.jpeg",
+        "descripcion": "Paisaje de montaña",
+        "favorito": false,
+        "descargada": false,
+        "expirationDate": "2026-12-19"
+    },
+	{
+        "nombre": "Cuadrado Rojo",
+        "url": "images/test.png",
+        "descripcion": "Un cuadrado rojo simple",
+        "favorito": false,
+        "descargada": false,
+        "expirationDate": "2028-01-19"
+    },
+	{
+        "nombre": "Fondo de pantalla windows",
+        "url": "images/wallpaper",
+        "descripcion": "Un fondo de pantalla de windows",
+        "favorito": false,
+        "descargada": false,
+        "expirationDate": "2023-01-19"
+    }
+]
