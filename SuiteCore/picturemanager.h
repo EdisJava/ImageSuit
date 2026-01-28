@@ -46,15 +46,23 @@ public:
     QList<Picture> downloaded() const;
 
     // Operaciones
-    void downloadPicture(int index, int seconds);
+    void downloadPicture(const Picture &picture, int seconds);
     void toggleFavorite(int indexReal); // Se recomienda usar índice real de m_pictures
     void toggleFavoriteByName(const QString& name);
     void removeDownloadedByName(const QString& name);
+    void downloadPictureByUrl(const QString &url, int seconds = 10);
 
 signals:
     void pictureDownloaded(const Picture& picture);
     void downloadProgress(int progress, const QString& pictureName);
     void pictureRemoved(const Picture& picture);
+
+
+public slots:
+    void downloadPicture(int index);
+    void downloadPicture(int index, int seconds);
+
+
 
 private:
     QList<Picture> m_pictures;

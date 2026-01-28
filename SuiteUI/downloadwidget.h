@@ -19,6 +19,7 @@ public:
 
     void applyExternalFilter(const QString &text);
     void applyExternalViewMode(ImageCardDelegate::ViewMode mode);
+    static void disableDragDrop(QAbstractItemView* view);
 
 signals:
 
@@ -28,7 +29,7 @@ private slots:
     void onDownloadAllClicked();
     void onPictureDownloaded(const Picture& picture);
     void onDownloadProgress(int progress, const QString& pictureName);
-
+    void downloadNextInMass();
 private:
     Ui::DownloadWidget *ui;
     PictureManager* m_pictureManager = nullptr;
@@ -36,5 +37,8 @@ private:
     ImageCardDelegate* m_delegate;
     bool m_isDownloadingAll = false;
     QString m_externalFilter; // Guarda el filtro que viene de fuera
+    QHash<QString, int> m_progressCache;
+    int m_pendingDownloads = 0;
+
 };
 #endif

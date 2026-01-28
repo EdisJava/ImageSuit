@@ -52,6 +52,7 @@ DownloadWidget::DownloadWidget(QWidget *parent)
 
 
 
+
     // Botón "Download All" -> inicia la descarga masiva
     connect(ui->DownloadAllButton, &QPushButton::clicked, this, &DownloadWidget::onDownloadAllClicked);
 
@@ -90,6 +91,7 @@ void DownloadWidget::applyExternalViewMode(ImageCardDelegate::ViewMode mode) {
     ui->DownloadPictureList->setViewMode(mode == ImageCardDelegate::Grid ? QListView::IconMode : QListView::ListMode);
     ui->DownloadPictureList->doItemsLayout();
     ui->DownloadPictureList->viewport()->update();
+     DownloadedWidget::disableDragDrop(ui->DownloadPictureList);
 }
 
 /**
@@ -112,17 +114,21 @@ void DownloadWidget::applyExternalFilter(const QString &text) {
  * - Qt::DecorationRole: icon (URL)
  * - FavoriteRole, DownloadedRole, ProgressRole
  */
-void DownloadWidget::refreshList() {
+void DownloadWidget::refreshList()
+{
     m_model->clear();
     if (!m_pictureManager) return;
 
     for (const auto &pic : m_pictureManager->toDownload()) {
-        if (!m_externalFilter.isEmpty() && !pic.nombre().toLower().contains(m_externalFilter)) continue;
+
         QStandardItem *item = new QStandardItem(pic.nombre());
         item->setData(QIcon(pic.url()), Qt::DecorationRole);
-        item->setData(QVariant(), ImageCardDelegate::FavoriteRole);
         item->setData(false, ImageCardDelegate::DownloadedRole);
-        item->setData(-1, ImageCardDelegate::ProgressRole);
+
+        //  restaurar progreso si existe
+        int progress = m_progressCache.value(pic.nombre(), -1);
+        item->setData(progress, ImageCardDelegate::ProgressRole);
+
         m_model->appendRow(item);
     }
 }
@@ -142,18 +148,36 @@ void DownloadWidget::onDownloadAllClicked() {
     m_isDownloadingAll = true;
     ui->DownloadAllButton->setEnabled(false);
 
-    // Obtenemos la lista actual ANTES de entrar al bucle
-    auto listToDownload = m_pictureManager->toDownload();
+    auto listToDownload = m_pictureManager->toDownload(); // Copia de la lista actual
 
-    for (int i = 0; i < listToDownload.size(); ++i) {
+    for (const Picture &pic : listToDownload) {
         int randomSeconds = QRandomGenerator::global()->bounded(10, 61);
-        QtConcurrent::run([this, i, randomSeconds]() {
-            if (m_pictureManager) {
-                m_pictureManager->downloadPicture(i, randomSeconds);
-            }
-        });
+        m_pictureManager->downloadPicture(pic, randomSeconds);
     }
 }
+
+void DownloadWidget::downloadNextInMass() {
+    if (!m_pictureManager) return;
+
+    auto list = m_pictureManager->toDownload();
+    if (list.isEmpty()) {
+        m_isDownloadingAll = false;
+        ui->DownloadAllButton->setEnabled(true);
+        QMessageBox::information(this, tr("Completado"), tr("Todas las imágenes se han descargado."));
+        return;
+    }
+
+    // Tomamos la primera imagen directamente
+    Picture pic = list.first();
+
+    int randomSeconds = QRandomGenerator::global()->bounded(10, 61);
+
+    // Descargamos usando el objeto completo, no índice
+    m_pictureManager->downloadPicture(pic, randomSeconds);
+}
+
+
+
 /**
  * @brief Slot que se llama cuando PictureManager emite pictureDownloaded.
  *
@@ -163,19 +187,18 @@ void DownloadWidget::onDownloadAllClicked() {
  * @param picture Picture descargada (no utilizada directamente aquí).
  */
 void DownloadWidget::onPictureDownloaded(const Picture &picture) {
-    Q_UNUSED(picture);
-    refreshList();
+    refreshList(); // Refresca visualmente, mantiene barras de progreso de otras descargas
 
-    if (m_isDownloadingAll && m_pictureManager) {
-        if (m_pictureManager->toDownload().isEmpty()) {
-            m_isDownloadingAll = false;
-            ui->DownloadAllButton->setEnabled(true); // <--- Aquí se reactiva
-            QMessageBox::information(this, tr("Completado"), tr("Todas las imágenes se han descargado."));
-        }
+    // Si estamos descargando masivamente, continuar con la siguiente
+    if (m_isDownloadingAll) {
+        downloadNextInMass();
     }
 
+    // Emitimos la señal normal
     emit pictureDownloaded();
 }
+
+
 
 /**
  * @brief Slot para recibir progreso de descarga de PictureManager.
@@ -185,16 +208,19 @@ void DownloadWidget::onPictureDownloaded(const Picture &picture) {
  * @param progress Valor de progreso (0-100).
  * @param name Nombre de la imagen asociada al progreso.
  */
-void DownloadWidget::onDownloadProgress(int progress, const QString &name) {
+void DownloadWidget::onDownloadProgress(int progress, const QString &name)
+{
+    m_progressCache[name] = progress;
+
     for (int i = 0; i < m_model->rowCount(); ++i) {
         QStandardItem *it = m_model->item(i);
         if (it && it->text() == name) {
             it->setData(progress, ImageCardDelegate::ProgressRole);
-            // Forzar repaint del viewport para reflejar cambio en delegado
-            ui->DownloadPictureList->viewport()->update();
             break;
         }
     }
+
+    ui->DownloadPictureList->viewport()->update();
 }
 
 /**
@@ -229,4 +255,17 @@ void DownloadWidget::setPictureManager(PictureManager *manager) {
  */
 DownloadWidget::~DownloadWidget() {
     delete ui;
+}
+
+/**
+ * @brief Desactiva drag & drop en una vista para evitar reordenamiento manual.
+ *
+ * @param view Puntero a la QAbstractItemView a ajustar.
+ */
+void DownloadWidget::disableDragDrop(QAbstractItemView* view) {
+    view->setDragEnabled(false);
+    view->setAcceptDrops(false);
+    view->setDropIndicatorShown(false);
+    view->setDefaultDropAction(Qt::IgnoreAction);
+    view->setDragDropMode(QAbstractItemView::NoDragDrop);
 }

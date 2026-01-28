@@ -24,6 +24,8 @@
 #include <QDebug>
 #include <QThread>
 #include <QMutexLocker>
+#include <QRandomGenerator>
+#include <QtConcurrent/QtConcurrentRun>
 
 /**
  * @brief Constructor.
@@ -133,58 +135,43 @@ bool PictureManager::saveDownloaded(const QString& filepath) {
  *
  * @param index Índice relativo dentro de la lista devuelta por toDownload().
  */
-void PictureManager::downloadPicture(int index, int seconds) {
-    // 1. Obtener la información básica de la imagen a descargar
-    // Lo hacemos fuera del mutex porque toDownload() ya devuelve una copia
-    QList<Picture> list = toDownload();
-    if (index < 0 || index >= list.size()) return;
+void PictureManager::downloadPicture(const Picture &picture, int seconds) {
+    QString targetUrl = picture.url();
+    QString targetName = picture.nombre();
 
-    QString targetUrl = list[index].url();
-    QString targetName = list[index].nombre();
-
-    // 2. --- CONTROL ANTI-BUG (Triple Click) ---
-    // Bloqueamos brevemente para comprobar si esta URL ya se está descargando
+    // Evitamos doble descarga
     {
         QMutexLocker locker(&m_mutex);
-        if (m_activeTasks.contains(targetUrl)) {
-            return; // Si ya está en la lista de tareas activas, ignoramos la petición
+        if (m_activeTasks.contains(targetUrl))
+            return;
+        m_activeTasks.insert(targetUrl);
+    }
+
+    // Simulación de descarga en un hilo (para no bloquear la UI)
+    QtConcurrent::run([this, picture, seconds]() mutable {
+        for (int p = 0; p <= 100; p += 5) {
+            QThread::msleep((seconds * 1000) / 20);
+            emit downloadProgress(p, picture.nombre());
         }
-        m_activeTasks.insert(targetUrl); // Marcamos la imagen como "en proceso"
-    }
 
-    // 3. --- SIMULACIÓN DE DESCARGA ---
-    // Este bucle corre en un hilo secundario, por lo que msleep no bloquea la UI
-    for (int p = 0; p <= 100; p += 5) {
-        QThread::msleep((seconds * 1000) / 20);
-        emit downloadProgress(p, targetName);
-    }
-
-    // 4. --- ACTUALIZACIÓN DE DATOS Y PERSISTENCIA ---
-    {
-        QMutexLocker locker(&m_mutex);
-
-        for (Picture& p : m_pictures) {
-            if (p.url() == targetUrl) {
-                p.setDescargada(true);
-                p.setFilePath(m_basePath + "/images/" + p.nombre() + ".jpg");
-
-                if (!p.expirationDate().isValid()) {
-                    if (p.nombre() == "Tranvia entre arboles")
-                        p.setExpirationDate(QDate::currentDate().addDays(-3));
-                    else
-                        p.setExpirationDate(QDate::currentDate().addDays(30));
+        // Actualizar datos en la lista principal (m_pictures)
+        {
+            QMutexLocker locker(&m_mutex);
+            for (Picture &p : m_pictures) {
+                if (p.url() == picture.url()) {
+                    p.setDescargada(true);
+                    p.setFilePath(m_basePath + "/images/" + p.nombre() + ".jpg");
+                    if (!p.expirationDate().isValid()) p.setExpirationDate(QDate::currentDate().addDays(30));
+                    saveDownloaded(getDownloadedJsonPath());
+                    emit pictureDownloaded(p);
+                    break;
                 }
-
-                saveDownloaded(getDownloadedJsonPath());
-
-                emit pictureDownloaded(p);
-                break;
             }
+            m_activeTasks.remove(picture.url());
         }
-
-        m_activeTasks.remove(targetUrl);
-    }
+    });
 }
+
 
 /**
  * @brief Elimina (marca como no descargada) una imagen y simula progreso de eliminación.
@@ -343,4 +330,30 @@ QString PictureManager::resolveImagePath(const QString& relativePath) const
 
 
     return QDir(m_basePath).filePath(relativePath);
+}
+
+void PictureManager::downloadPictureByUrl(const QString &url, int seconds)
+{
+    const auto list = toDownload();
+    for (const Picture &pic : list) {
+        if (pic.url() == url) {
+            downloadPicture(pic, seconds); // ✔ ahora usa la versión correcta
+            return;
+        }
+    }
+}
+
+void PictureManager::downloadPicture(int index)
+{
+    const auto list = toDownload();
+    if (index < 0 || index >= list.size()) return;
+
+    int randomSeconds = QRandomGenerator::global()->bounded(10, 61);
+    downloadPicture(list[index], randomSeconds); // ✔ usa la versión correcta
+}
+
+void PictureManager::downloadPicture(int index, int seconds) {
+    const auto list = toDownload();
+    if (index < 0 || index >= list.size()) return;
+    downloadPicture(list.at(index), seconds);
 }

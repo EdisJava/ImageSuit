@@ -101,6 +101,8 @@ void DownloadedWidget::setupConnections() {
         m_delegate->setViewMode(newMode);
         ui->DownloadedPictureList->setViewMode(newMode == ImageCardDelegate::Grid ? QListView::IconMode : QListView::ListMode);
 
+         DownloadedWidget::disableDragDrop(ui->DownloadedPictureList);
+
         // Forzar relayout y repaint para que el delegado vuelva a pintar en el nuevo modo
         ui->DownloadedPictureList->doItemsLayout();
         ui->DownloadedPictureList->viewport()->update();
@@ -301,10 +303,13 @@ void DownloadedWidget::setPictureManager(PictureManager *manager) {
  * @param view Puntero a la QAbstractItemView a ajustar.
  */
 void DownloadedWidget::disableDragDrop(QAbstractItemView* view) {
-    if (!view) return;
+
     view->setDragEnabled(false);
     view->setAcceptDrops(false);
+    view->setDropIndicatorShown(false);
+    view->setDefaultDropAction(Qt::IgnoreAction);
     view->setDragDropMode(QAbstractItemView::NoDragDrop);
+
 }
 
 /**

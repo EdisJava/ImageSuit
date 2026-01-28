@@ -118,6 +118,8 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
                           index.data().toString());
 
         textBottomY = textRect.top() + textRect.height();
+
+
     } else {
         // Modo List
         painter->drawPixmap(10, 10, 60, 60, icon.pixmap(60, 60));
