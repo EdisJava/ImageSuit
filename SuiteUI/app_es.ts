@@ -6,12 +6,42 @@
     <message>
         <location filename="downloadwidget.ui" line="14"/>
         <source>Form</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="downloadwidget.ui" line="160"/>
+        <location filename="downloadwidget.ui" line="69"/>
         <source>Available downloads</source>
-        <translation>Disponibles para descargar</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.cpp" line="64"/>
+        <source>Caducada</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.cpp" line="65"/>
+        <source>Esta imagen ha caducado. Se descargará pero no podrá abrirse.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.cpp" line="80"/>
+        <source>Info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.cpp" line="80"/>
+        <source>URL: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.cpp" line="174"/>
+        <source>Éxito</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.cpp" line="174"/>
+        <source>Descarga masiva completada.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -19,27 +49,59 @@
     <message>
         <location filename="downloadedwidget.ui" line="14"/>
         <source>Form</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="downloadedwidget.ui" line="74"/>
+        <location filename="downloadedwidget.ui" line="108"/>
         <source>Downloaded       </source>
-        <translation>Descargados       </translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="downloadedwidget.ui" line="114"/>
-        <source>lorem ipsum.png      </source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="downloadedwidget.ui" line="142"/>
-        <source>Show Favorites</source>
-        <translation>Filtrar Favoritos</translation>
-    </message>
-    <message>
-        <location filename="downloadedwidget.ui" line="346"/>
+        <location filename="downloadedwidget.ui" line="243"/>
         <source>Introduce the name who are you searching for</source>
-        <translation>Introduce el nombre para buscar</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.ui" line="262"/>
+        <source>Change View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.ui" line="281"/>
+        <source>Toggle Favourite</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.cpp" line="52"/>
+        <location filename="downloadedwidget.cpp" line="194"/>
+        <source>Showing all</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.cpp" line="139"/>
+        <source>Info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.cpp" line="139"/>
+        <source>Nombre: %1
+URL: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.cpp" line="157"/>
+        <source>Caducada</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.cpp" line="157"/>
+        <source>Esta imagen ha caducado y no se puede abrir.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.cpp" line="193"/>
+        <source>Showing favourites</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -47,7 +109,7 @@
     <message>
         <location filename="imagecarddelegate.ui" line="14"/>
         <source>Form</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -55,17 +117,27 @@
     <message>
         <location filename="imageviewer.ui" line="14"/>
         <source>Form</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="imageviewer.ui" line="70"/>
+        <location filename="imageviewer.ui" line="72"/>
         <source>lorem impsum.png</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="imageviewer.ui" line="100"/>
+        <location filename="imageviewer.ui" line="103"/>
         <source>lorem ipsum is a picture</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="imageviewer.cpp" line="40"/>
+        <source>Visor de Imagen</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="imageviewer.cpp" line="68"/>
+        <source>No se pudo cargar el archivo de imagen</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -73,7 +145,12 @@
     <message>
         <location filename="mainwindow.ui" line="14"/>
         <source>MainWindow</source>
-        <translation>Suite</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="38"/>
+        <source>Gallery</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

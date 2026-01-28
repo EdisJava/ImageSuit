@@ -37,7 +37,7 @@ ImageViewer::ImageViewer(QWidget *parent) :
 
     // Configuración de ventana emergente: estilo de diálogo con título y botón cerrar.
     this->setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
-    this->setWindowTitle(tr("Visor de Imagen"));
+    this->setWindowTitle(tr("Image viewer"));
 
     // Cerrar al pulsar el botón "back"
     connect(ui->backButton, &QPushButton::clicked, this, &ImageViewer::close);
@@ -65,7 +65,7 @@ void ImageViewer::showPicture(const Picture &picture)
 
     if (pixmap.isNull()) {
         qDebug() << "Error: No se pudo cargar la imagen en:" << picture.url();
-        ui->ImageLabel->setText(tr("No se pudo cargar el archivo de imagen"));
+        ui->ImageLabel->setText(tr("Hte image cannot be loaded"));
         m_currentPixmap = QPixmap(); // Limpiar la imagen actual
     } else {
         // Guardamos la QPixmap original para poder reescalarla en resizeEvent

@@ -9,9 +9,39 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../downloadwidget.ui" line="63"/>
+        <location filename="../downloadwidget.ui" line="69"/>
         <source>Available downloads</source>
         <translation>Disponibles para descargar</translation>
+    </message>
+    <message>
+        <location filename="../downloadwidget.cpp" line="64"/>
+        <source>Expired</source>
+        <translation>Caducado</translation>
+    </message>
+    <message>
+        <location filename="../downloadwidget.cpp" line="65"/>
+        <source>This image is expired. You can download but no open it</source>
+        <translation>La imagen ha caducado. Podras descargarla pero no abrirla</translation>
+    </message>
+    <message>
+        <location filename="../downloadwidget.cpp" line="80"/>
+        <source>Info</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../downloadwidget.cpp" line="80"/>
+        <source>URL: %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../downloadwidget.cpp" line="174"/>
+        <source>Succes</source>
+        <translation>Exito</translation>
+    </message>
+    <message>
+        <location filename="../downloadwidget.cpp" line="174"/>
+        <source>Mass download succesfully.</source>
+        <translation>Descarga masiva exitosa.</translation>
     </message>
 </context>
 <context>
@@ -22,28 +52,61 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="../downloadedwidget.ui" line="107"/>
+        <location filename="../downloadedwidget.ui" line="108"/>
         <source>Downloaded       </source>
         <translation>Descargados       </translation>
     </message>
     <message>
-        <location filename="../downloadedwidget.ui" line="286"/>
+        <location filename="../downloadedwidget.ui" line="262"/>
         <source>Change View</source>
-        <translation type="unfinished"></translation>
+        <translation>Cambiar vista</translation>
     </message>
     <message>
-        <location filename="../downloadedwidget.ui" line="305"/>
+        <location filename="../downloadedwidget.ui" line="281"/>
         <source>Toggle Favourite</source>
-        <translation type="unfinished"></translation>
+        <translation>FIltrar Favortios</translation>
     </message>
     <message>
         <source>Show Favorites</source>
         <translation type="vanished">Filtrar Favoritos</translation>
     </message>
     <message>
-        <location filename="../downloadedwidget.ui" line="267"/>
+        <location filename="../downloadedwidget.ui" line="243"/>
         <source>Introduce the name who are you searching for</source>
         <translation>Introduce el nombre para buscar</translation>
+    </message>
+    <message>
+        <location filename="../downloadedwidget.cpp" line="52"/>
+        <location filename="../downloadedwidget.cpp" line="194"/>
+        <source>Showing all</source>
+        <translation>Mostrando todos</translation>
+    </message>
+    <message>
+        <location filename="../downloadedwidget.cpp" line="139"/>
+        <source>Info</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../downloadedwidget.cpp" line="139"/>
+        <source>Name: %1
+URL: %2</source>
+        <translation>Nombre: %1
+URL: %2</translation>
+    </message>
+    <message>
+        <location filename="../downloadedwidget.cpp" line="157"/>
+        <source>Expired</source>
+        <translation>Caducado</translation>
+    </message>
+    <message>
+        <location filename="../downloadedwidget.cpp" line="157"/>
+        <source>This image is expired and cannot be opened</source>
+        <translation>Esta imagen ha caducado y no puede ser abierta</translation>
+    </message>
+    <message>
+        <location filename="../downloadedwidget.cpp" line="193"/>
+        <source>Showing favourites</source>
+        <translation>Mostrando Favoritos</translation>
     </message>
 </context>
 <context>
@@ -71,6 +134,16 @@
         <source>lorem ipsum is a picture</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../imageviewer.cpp" line="40"/>
+        <source>Image viewer</source>
+        <translation>Visor de imagen</translation>
+    </message>
+    <message>
+        <location filename="../imageviewer.cpp" line="68"/>
+        <source>Hte image cannot be loaded</source>
+        <translation>La iamgen no puede ser cargada</translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>
@@ -78,6 +151,11 @@
         <location filename="../mainwindow.ui" line="14"/>
         <source>MainWindow</source>
         <translation>Suite</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="38"/>
+        <source>Gallery</source>
+        <translation>Galeria</translation>
     </message>
 </context>
 </TS>

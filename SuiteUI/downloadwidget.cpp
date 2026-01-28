@@ -61,8 +61,8 @@ DownloadWidget::DownloadWidget(QWidget *parent)
                 const auto &pic = list.at(idx.row());
                 if (pic.isExpired()) {
                     // Informar al usuario si la imagen está caducada (se permite descargar pero no abrir)
-                    QMessageBox::warning(this, tr("Caducada"),
-                                         tr("Esta imagen ha caducado. Se descargará pero no podrá abrirse."));
+                    QMessageBox::warning(this, tr("Expired"),
+                                         tr("This image is expired. You can download but no open it"));
                 }
                 // Marcar el progreso en el modelo (rol ProgressRole)
                 m_model->setData(idx, 0, ImageCardDelegate::ProgressRole);
@@ -171,7 +171,7 @@ void DownloadWidget::onPictureDownloaded(const Picture &picture) {
             // Finalizado
             m_isDownloadingAll = false;
             ui->DownloadAllButton->setEnabled(true);
-            QMessageBox::information(this, tr("Éxito"), tr("Descarga masiva completada."));
+            QMessageBox::information(this, tr("Succes"), tr("Mass download succesfully."));
         }
     }
 

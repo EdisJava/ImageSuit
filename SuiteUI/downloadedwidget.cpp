@@ -136,7 +136,7 @@ void DownloadedWidget::setupConnections() {
             // Buscar Picture en PictureManager::downloaded() por URL
             for (const auto &pic : m_pictureManager->downloaded()) {
                 if (pic.url() == url) {
-                    QMessageBox::information(this, tr("Info"), tr("Nombre: %1\nURL: %2").arg(pic.nombre(), pic.url()));
+                    QMessageBox::information(this, tr("Info"), tr("Name: %1\nURL: %2").arg(pic.nombre(), pic.url()));
                     break;
                 }
             }
@@ -154,7 +154,7 @@ void DownloadedWidget::setupConnections() {
                 if (pic.url() == url) {
                     bool expired = pic.expirationDate().isValid() && pic.expirationDate() < QDate::currentDate();
                     if (expired) {
-                        QMessageBox::warning(this, tr("Caducada"), tr("Esta imagen ha caducado y no se puede abrir."));
+                        QMessageBox::warning(this, tr("Expired"), tr("This image is expired and cannot be opened"));
                         return;
                     }
                     emit openPicture(pic);
@@ -189,11 +189,14 @@ void DownloadedWidget::setupConnections() {
     // Botón filtro de favoritos: al alternar invoca refreshList()
     connect(ui->btnFilterFavorites, &QPushButton::toggled, this, &DownloadedWidget::refreshList);
 
+    //Constantes para poder traducirlas sin forzar en la lambda
+    const QString textFavorites = tr("Showing favourites");
+    const QString textAll = tr("Showing all");
+
     connect(ui->btnFilterFavorites, &QPushButton::toggled,
-            this, [this](bool checked) {
+            this, [this, textFavorites, textAll](bool checked) {
                 ui->LabelFilterFavourites->setText(
-                    checked ? tr("Showing favourites")
-                            : tr("Showing all")
+                    checked ? textFavorites : textAll
                     );
             });
 

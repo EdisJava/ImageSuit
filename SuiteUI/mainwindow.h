@@ -26,7 +26,7 @@ private:
     Ui::MainWindow *ui;
     PictureManager m_pictureManager;
     ImageViewer* imageViewer;
-     QString getProjectPath();
+    QString getProjectPath();
 };
 
 #endif // MAINWINDOW_H

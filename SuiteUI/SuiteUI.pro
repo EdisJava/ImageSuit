@@ -15,7 +15,8 @@ SOURCES += \
     imagecarddelegate.cpp \
     imageviewer.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+
 
 HEADERS += \
     cardcontrols.h \
@@ -37,15 +38,17 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../SuiteCore/release/ -lSuiteCore
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../SuiteCore/debug/ -lSuiteCore
-else:unix: LIBS += -L$$OUT_PWD/../SuiteCore/ -lSuiteCore
 
-INCLUDEPATH += $$PWD/../SuiteCore
-DEPENDPATH += $$PWD/../SuiteCore
 
 TRANSLATIONS += \
         translations/app_es.ts
 
 RESOURCES += \
     resource.qrc
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../SuiteCore/release/ -lSuiteCore
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../SuiteCore/debug/ -lSuiteCore
+else:unix: LIBS += -L$$OUT_PWD/../SuiteCore/ -lSuiteCore
+
+INCLUDEPATH += $$PWD/../SuiteCore
+DEPENDPATH += $$PWD/../SuiteCore

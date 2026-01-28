@@ -78,13 +78,12 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     bool selected = option.state & QStyle::State_Selected;
     bool expired = index.data(ExpiredRole).toBool();
 
-    // Determinar colores según estado
+    // Colores según estado
     QColor borderColor = selected ? QColor(255, 165, 0) : QColor(220, 220, 220);
     QColor fillColor = Qt::white;
 
     if (expired) {
-        fillColor = QColor(255, 120, 120, 150);  // rojo suave semi-transparente
-        // Borde más grueso y diferente si está seleccionada
+        fillColor = QColor(255, 120, 120, 150);
         borderColor = selected ? QColor(255, 165, 0) : QColor(200, 0, 0);
     } else if (selected) {
         fillColor = QColor(255, 165, 0, 10);
@@ -93,61 +92,75 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         borderColor = QColor(220, 220, 220);
     }
 
-    // Dibujar fondo de la tarjeta
+    // Fondo de la tarjeta
     int borderWidth = selected ? 3 : 1;
     painter->setPen(QPen(borderColor, borderWidth));
     painter->setBrush(fillColor);
     painter->drawRoundedRect(QRect(0, 0, s.width(), s.height()), 10, 10);
 
-    // Calcular rectángulos de botones
+    // Rects de botones
     QRect favR, infR, delR, progR;
     getRectsLocal(s, m_mode, favR, infR, delR, progR);
 
-    // Dibujar icono/imagen y texto
+    // Icono y texto
     QIcon icon = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
+    int textBottomY = 0;
     if (m_mode == Grid) {
-        // Modo Grid: imagen grande + texto con word wrap
+        // Imagen grande
         painter->drawPixmap(QRect(10, 10, s.width() - 20, 130), icon.pixmap(150, 150));
         painter->setPen(Qt::black);
 
-        // Calcular área dinámica para el texto (entre imagen y botones)
+        // Texto debajo de la imagen
         int textY = 145;
-        int textHeight = s.height() - textY - 45;  // Espacio disponible hasta los botones
-
-        // Dibujar texto con word wrap automático
-        painter->drawText(QRect(5, textY, s.width() - 10, textHeight),
-                          Qt::AlignCenter | Qt::AlignTop | Qt::TextWordWrap,
+        int textHeight = s.height() - textY - 45; // espacio hasta botones
+        QRect textRect(5, textY, s.width() - 10, textHeight);
+        painter->drawText(textRect, Qt::AlignCenter | Qt::AlignTop | Qt::TextWordWrap,
                           index.data().toString());
+
+        textBottomY = textRect.top() + textRect.height();
     } else {
-        // Modo List: imagen pequeña + texto centrado en una línea
+        // Modo List
         painter->drawPixmap(10, 10, 60, 60, icon.pixmap(60, 60));
         painter->setPen(Qt::black);
         painter->drawText(QRect(85, 5, favR.left() - 90, 40),
                           Qt::AlignCenter | Qt::AlignVCenter,
                           index.data().toString());
+        textBottomY = 10 + 60; // imagen + margen
     }
 
-    // Dibujar barra de progreso si está descargando o eliminando
+    // Barra de progreso
     int progress = index.data(ProgressRole).toInt();
     if (progress >= 0) {
-        // Fondo de la barra (gris claro)
+        QRect progressRect;
+        if (m_mode == Grid) {
+            int margin = 5;
+            int buttonAreaHeight = 35; // altura reservada para botones
+            int progressHeight = 8;
+
+            int progY = std::min(textBottomY + margin, s.height() - buttonAreaHeight - progressHeight - margin);
+            progressRect = QRect(10, progY, s.width() - 20, progressHeight);
+        } else {
+            progressRect = progR;
+        }
+
+        // Fondo gris
         painter->setPen(Qt::NoPen);
         painter->setBrush(QColor(230, 230, 230));
-        painter->drawRoundedRect(progR, 5, 5);
+        painter->drawRoundedRect(progressRect, 5, 5);
 
-        // Relleno de progreso (naranja)
+        // Relleno naranja
         painter->setBrush(QColor(255, 165, 0));
-        painter->drawRoundedRect(progR.left(), progR.top(),
-                                 (progR.width() * progress) / 100,
-                                 progR.height(), 5, 5);
+        painter->drawRoundedRect(progressRect.left(), progressRect.top(),
+                                 (progressRect.width() * progress) / 100,
+                                 progressRect.height(), 5, 5);
 
-        // Texto del porcentaje
+        // Texto %
         painter->setPen(Qt::black);
         painter->setFont(QFont("Arial", 8, QFont::Bold));
-        painter->drawText(progR, Qt::AlignCenter, QString("%1%").arg(progress));
+        painter->drawText(progressRect, Qt::AlignCenter, QString("%1%").arg(progress));
     }
 
-    // Función lambda para dibujar botones circulares
+    // Lambda para dibujar botones circulares
     auto drawButton = [&](const QRect &rect, const QString &text,
                           QColor background, QColor foreground) {
         painter->setBrush(background);
@@ -157,7 +170,7 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         painter->drawText(rect, Qt::AlignCenter, text);
     };
 
-    // Dibujar botón de favorito (solo si está disponible)
+    // Botón favorito
     QVariant favoriteData = index.data(FavoriteRole);
     if (favoriteData.isValid()) {
         bool isFavorite = favoriteData.toBool();
@@ -167,10 +180,10 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
                    isFavorite ? QColor(255, 180, 0) : Qt::gray);
     }
 
-    // Dibujar botón de información
+    // Botón info
     drawButton(infR, "i", QColor(240, 240, 240), Qt::black);
 
-    // Dibujar botón de eliminar (solo si está descargada)
+    // Botón eliminar
     if (index.data(DownloadedRole).toBool()) {
         drawButton(delR, "✕", QColor(255, 230, 230), Qt::red);
     }
