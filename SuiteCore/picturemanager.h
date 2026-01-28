@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QList>
 #include <QString>
+#include <QSet>
+#include <QMutex>
 #include "Picture.h"
 #include "SuiteCore_global.h"
 
@@ -17,7 +19,7 @@ public:
     explicit PictureManager(QObject* parent = nullptr);
 
     void setBasePath(const QString& path);
-    void removeDownloaded(const Picture& picture);
+    void removeDownloaded(const Picture& picture, int seconds);
 
     QString getDownloadedJsonPath() const;
     QString getImagesFolderPath() const;
@@ -44,7 +46,7 @@ public:
     QList<Picture> downloaded() const;
 
     // Operaciones
-    void downloadPicture(int index);
+    void downloadPicture(int index, int seconds);
     void toggleFavorite(int indexReal); // Se recomienda usar índice real de m_pictures
     void toggleFavoriteByName(const QString& name);
     void removeDownloadedByName(const QString& name);
@@ -57,6 +59,8 @@ signals:
 private:
     QList<Picture> m_pictures;
     QString m_basePath;
+    mutable QMutex m_mutex;
+    QSet<QString> m_activeTasks;
 };
 
 #endif // PICTUREMANAGER_H

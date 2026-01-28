@@ -22,6 +22,8 @@
 #include <QTimer>
 #include <QDate>
 #include <QDebug>
+#include <QThread>
+#include <QMutexLocker>
 
 /**
  * @brief Constructor.
@@ -131,50 +133,57 @@ bool PictureManager::saveDownloaded(const QString& filepath) {
  *
  * @param index Índice relativo dentro de la lista devuelta por toDownload().
  */
-void PictureManager::downloadPicture(int index) {
+void PictureManager::downloadPicture(int index, int seconds) {
+    // 1. Obtener la información básica de la imagen a descargar
+    // Lo hacemos fuera del mutex porque toDownload() ya devuelve una copia
     QList<Picture> list = toDownload();
     if (index < 0 || index >= list.size()) return;
 
     QString targetUrl = list[index].url();
+    QString targetName = list[index].nombre();
 
-    QTimer* timer = new QTimer(this);
-    int* progress = new int(0);
+    // 2. --- CONTROL ANTI-BUG (Triple Click) ---
+    // Bloqueamos brevemente para comprobar si esta URL ya se está descargando
+    {
+        QMutexLocker locker(&m_mutex);
+        if (m_activeTasks.contains(targetUrl)) {
+            return; // Si ya está en la lista de tareas activas, ignoramos la petición
+        }
+        m_activeTasks.insert(targetUrl); // Marcamos la imagen como "en proceso"
+    }
 
-    connect(timer, &QTimer::timeout, this, [this, timer, progress, targetUrl]() {
-        *progress += 10;
+    // 3. --- SIMULACIÓN DE DESCARGA ---
+    // Este bucle corre en un hilo secundario, por lo que msleep no bloquea la UI
+    for (int p = 0; p <= 100; p += 5) {
+        QThread::msleep((seconds * 1000) / 20);
+        emit downloadProgress(p, targetName);
+    }
+
+    // 4. --- ACTUALIZACIÓN DE DATOS Y PERSISTENCIA ---
+    {
+        QMutexLocker locker(&m_mutex);
 
         for (Picture& p : m_pictures) {
             if (p.url() == targetUrl) {
-                emit downloadProgress(*progress, p.nombre());
+                p.setDescargada(true);
+                p.setFilePath(m_basePath + "/images/" + p.nombre() + ".jpg");
 
-                if (*progress >= 100) {
-                    p.setDescargada(true);
-                    p.setFilePath(m_basePath + "/images/" + p.nombre() + ".jpg");
-
-                    // Si no tiene fecha de caducidad válida, asignar una por defecto.
-                    // Aquí hay una regla de ejemplo para marcar una imagen concreta como caducada.
-                    if (!p.expirationDate().isValid()) {
-                        if (p.nombre() == "Tranvia entre arboles") {
-                            // Esta imagen la marcamos explícitamente como caducada (ejemplo).
-                            p.setExpirationDate(QDate::currentDate().addDays(-3));
-                        } else {
-                            // El resto tendrán 30 días de validez por defecto.
-                            p.setExpirationDate(QDate::currentDate().addDays(30));
-                        }
-                    }
-
-                    timer->stop();
-                    saveDownloaded(getDownloadedJsonPath());
-                    emit pictureDownloaded(p);
-                    timer->deleteLater();
-                    delete progress;
+                if (!p.expirationDate().isValid()) {
+                    if (p.nombre() == "Tranvia entre arboles")
+                        p.setExpirationDate(QDate::currentDate().addDays(-3));
+                    else
+                        p.setExpirationDate(QDate::currentDate().addDays(30));
                 }
+
+                saveDownloaded(getDownloadedJsonPath());
+
+                emit pictureDownloaded(p);
                 break;
             }
         }
-    });
 
-    timer->start(50);
+        m_activeTasks.remove(targetUrl);
+    }
 }
 
 /**
@@ -186,50 +195,47 @@ void PictureManager::downloadPicture(int index) {
  *
  * @param picture Picture a eliminar (por valor; se compara su URL).
  */
-void PictureManager::removeDownloaded(const Picture& picture) {
-    // Buscar el índice primero
-    int foundIndex = -1;
-    for (int i = 0; i < m_pictures.size(); ++i) {
-        if (m_pictures[i].url() == picture.url()) {
-            foundIndex = i;
-            break;
+void PictureManager::removeDownloaded(const Picture& picture, int seconds) {
+    QString pictureName = picture.nombre();
+    QString pictureUrl = picture.url();
+
+    // 1. --- CONTROL ANTI-BUG (Clicks repetidos) ---
+    {
+        QMutexLocker locker(&m_mutex);
+        if (m_activeTasks.contains(pictureUrl)) {
+            return; // Si ya se está borrando (o descargando), ignoramos
         }
+        m_activeTasks.insert(pictureUrl);
     }
 
-    if (foundIndex == -1) return;
+    // 2. --- SIMULACIÓN DE DESINSTALACIÓN ---
+    // Usamos pasos de 10% para que sea visualmente distinto a la descarga
+    for (int p = 0; p <= 100; p += 10) {
+        QThread::msleep((seconds * 1000) / 10);
+        emit downloadProgress(p, pictureName);
+    }
 
-    // Copiar datos necesarios para el timer/lambda
-    QString pictureName = m_pictures[foundIndex].nombre();
-    QString pictureUrl = m_pictures[foundIndex].url();
+    // 3. --- LIMPIEZA DE DATOS Y PERSISTENCIA ---
+    {
+        QMutexLocker locker(&m_mutex);
 
-    // Simular progreso de eliminación
-    int* progress = new int(0);
-    QTimer* timer = new QTimer(this);
+        for (int i = 0; i < m_pictures.size(); ++i) {
+            if (m_pictures[i].url() == pictureUrl) {
+                // Cambiamos el estado a "no descargada"
+                m_pictures[i].setDescargada(false);
+                m_pictures[i].setFavorito(false); // Al borrarla, quitamos el favorito
 
-    connect(timer, &QTimer::timeout, this, [this, timer, progress, pictureName, pictureUrl]() mutable {
-        *progress += 20;
-        emit downloadProgress(*progress, pictureName);
-
-        if (*progress >= 100) {
-            timer->stop();
-            timer->deleteLater();
-            delete progress;
-
-            // Buscar de nuevo el índice por si cambió
-            for (int i = 0; i < m_pictures.size(); ++i) {
-                if (m_pictures[i].url() == pictureUrl) {
-                    m_pictures[i].setDescargada(false);
-                    m_pictures[i].setFavorito(false);
-                    saveDownloaded(getDownloadedJsonPath());
+                // Persistimos el cambio en el JSON
+                saveDownloaded(getDownloadedJsonPath());
                     emit downloadProgress(-1, pictureName); // -1 puede significar "sin progreso"
                     emit pictureRemoved(m_pictures[i]);
                     break;
                 }
             }
-        }
-    });
 
-    timer->start(100);
+        // 4. --- LIBERAR TAREA ---
+        m_activeTasks.remove(pictureUrl);
+    }
 }
 
 /**

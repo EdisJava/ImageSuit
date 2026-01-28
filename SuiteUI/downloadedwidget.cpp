@@ -25,6 +25,7 @@
 #include <QSortFilterProxyModel>
 #include <QDate>
 #include <QDebug>
+#include <QtConcurrent>
 
 /**
  * @brief Constructor.
@@ -169,11 +170,18 @@ void DownloadedWidget::setupConnections() {
         QModelIndex sourceIdx = m_downloadedProxy->mapToSource(idx);
         if (sourceIdx.isValid() && m_pictureManager) {
             QString url = sourceIdx.data(ItemUrlRole).toString();
+
             if (url.isEmpty()) return;
             // Buscar en m_pictureManager::downloaded() por URL y solicitar eliminación
             for (const auto &pic : m_pictureManager->downloaded()) {
                 if (pic.url() == url) {
-                    m_pictureManager->removeDownloaded(pic);
+                    // 1. Generar duración aleatoria (5 a 10 segundos para desinstalar)
+                    int randomSecs = QRandomGenerator::global()->bounded(5, 11);
+
+                    // 2. Lanzar en hilo separado con AMBOS argumentos
+                    QtConcurrent::run([this, pic, randomSecs]() {
+                        m_pictureManager->removeDownloaded(pic, randomSecs);
+                    });
                     break;
                 }
             }

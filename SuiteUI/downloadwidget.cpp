@@ -20,6 +20,8 @@
 #include <QListView>
 #include <QPushButton>
 #include <QDebug>
+#include <QRandomGenerator>
+#include <QtConcurrent>
 
 /**
  * @brief Constructor.
@@ -55,22 +57,18 @@ DownloadWidget::DownloadWidget(QWidget *parent)
 
     // Doble clic sobre un item: inicia la descarga de ese item si no estamos en descarga masiva
     connect(m_delegate, &ImageCardDelegate::doubleClicked, this, [this](const QModelIndex &idx){
-        if (!m_isDownloadingAll && m_pictureManager) {
-            const auto &list = m_pictureManager->toDownload();
-            if (idx.row() >= 0 && idx.row() < list.size()) {
-                const auto &pic = list.at(idx.row());
-                if (pic.isExpired()) {
-                    // Informar al usuario si la imagen está caducada (se permite descargar pero no abrir)
-                    QMessageBox::warning(this, tr("Expired"),
-                                         tr("This image is expired. You can download but no open it"));
-                }
-                // Marcar el progreso en el modelo (rol ProgressRole)
-                m_model->setData(idx, 0, ImageCardDelegate::ProgressRole);
-                // Iniciar la descarga pidiendo al PictureManager (ejecutado en la cola de eventos)
-                m_pictureManager->downloadPicture(idx.row());
-            }
-        }
-    });
+    if (m_pictureManager) {
+        QString name = idx.data(Qt::DisplayRole).toString();
+        int progress = idx.data(ImageCardDelegate::ProgressRole).toInt();
+
+        if (progress >= 0) return;
+
+        int randomSeconds = QRandomGenerator::global()->bounded(10, 61);
+        QtConcurrent::run([this, idx, randomSeconds]() {
+            m_pictureManager->downloadPicture(idx.row(), randomSeconds);
+        });
+    }
+});
 
     // Info: mostrar URL en un mensaje informativo
     connect(m_delegate, &ImageCardDelegate::infoRequested, this, [this](const QModelIndex &idx){
@@ -139,16 +137,23 @@ void DownloadWidget::refreshList() {
  * problemas si se invoca desde contextos distintos.
  */
 void DownloadWidget::onDownloadAllClicked() {
-    if (!m_pictureManager || m_pictureManager->toDownload().isEmpty() || m_isDownloadingAll) return;
+    if (!m_pictureManager || m_pictureManager->toDownload().isEmpty()) return;
+
     m_isDownloadingAll = true;
     ui->DownloadAllButton->setEnabled(false);
 
-    // Llamada encolada para iniciar la primera descarga (evita reentradas)
-    QMetaObject::invokeMethod(m_pictureManager, [this](){
-        if (m_pictureManager) m_pictureManager->downloadPicture(0);
-    }, Qt::QueuedConnection);
-}
+    // Obtenemos la lista actual ANTES de entrar al bucle
+    auto listToDownload = m_pictureManager->toDownload();
 
+    for (int i = 0; i < listToDownload.size(); ++i) {
+        int randomSeconds = QRandomGenerator::global()->bounded(10, 61);
+        QtConcurrent::run([this, i, randomSeconds]() {
+            if (m_pictureManager) {
+                m_pictureManager->downloadPicture(i, randomSeconds);
+            }
+        });
+    }
+}
 /**
  * @brief Slot que se llama cuando PictureManager emite pictureDownloaded.
  *
@@ -162,16 +167,10 @@ void DownloadWidget::onPictureDownloaded(const Picture &picture) {
     refreshList();
 
     if (m_isDownloadingAll && m_pictureManager) {
-        if (!m_pictureManager->toDownload().isEmpty()) {
-            // Iniciar la siguiente descarga en la cola de eventos
-            QMetaObject::invokeMethod(m_pictureManager, [this](){
-                if (m_pictureManager) m_pictureManager->downloadPicture(0);
-            }, Qt::QueuedConnection);
-        } else {
-            // Finalizado
+        if (m_pictureManager->toDownload().isEmpty()) {
             m_isDownloadingAll = false;
-            ui->DownloadAllButton->setEnabled(true);
-            QMessageBox::information(this, tr("Succes"), tr("Mass download succesfully."));
+            ui->DownloadAllButton->setEnabled(true); // <--- Aquí se reactiva
+            QMessageBox::information(this, tr("Completado"), tr("Todas las imágenes se han descargado."));
         }
     }
 

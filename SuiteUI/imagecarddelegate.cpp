@@ -83,7 +83,7 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     QColor fillColor = Qt::white;
 
     if (expired) {
-        fillColor = QColor(255, 120, 120, 150);
+        fillColor = QColor(255, 120, 120, 150);  // rojo suave semi-transparente
         borderColor = selected ? QColor(255, 165, 0) : QColor(200, 0, 0);
     } else if (selected) {
         fillColor = QColor(255, 165, 0, 10);
@@ -92,7 +92,7 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         borderColor = QColor(220, 220, 220);
     }
 
-    // Fondo de la tarjeta
+    // Dibujar fondo de la tarjeta
     int borderWidth = selected ? 3 : 1;
     painter->setPen(QPen(borderColor, borderWidth));
     painter->setBrush(fillColor);
@@ -102,7 +102,7 @@ void ImageCardDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
     QRect favR, infR, delR, progR;
     getRectsLocal(s, m_mode, favR, infR, delR, progR);
 
-    // Icono y texto
+    // Dibujar icono/imagen y texto
     QIcon icon = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
     int textBottomY = 0;
     if (m_mode == Grid) {
