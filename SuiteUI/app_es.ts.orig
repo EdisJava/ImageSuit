@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
+<TS version="2.1" language="es_ES">
+<context>
+    <name>DownloadWidget</name>
+    <message>
+        <location filename="downloadwidget.ui" line="14"/>
+        <source>Form</source>
+<<<<<<< HEAD
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.ui" line="69"/>
+        <source>Available downloads</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.cpp" line="64"/>
+        <source>Caducada</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.cpp" line="65"/>
+        <source>Esta imagen ha caducado. Se descargará pero no podrá abrirse.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.cpp" line="80"/>
+        <source>Info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.cpp" line="80"/>
+        <source>URL: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.cpp" line="174"/>
+        <source>Éxito</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.cpp" line="174"/>
+        <source>Descarga masiva completada.</source>
+        <translation type="unfinished"></translation>
+=======
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="downloadwidget.ui" line="160"/>
+        <source>Available downloads</source>
+        <translation>Disponibles para descargar</translation>
+>>>>>>> 22891d2 (barra de progreso y añadido la funcion multihilos para que funcione todo por separado)
+    </message>
+</context>
+<context>
+    <name>DownloadedWidget</name>
+    <message>
+        <location filename="downloadedwidget.ui" line="14"/>
+        <source>Form</source>
+<<<<<<< HEAD
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.ui" line="108"/>
+        <source>Downloaded       </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.ui" line="243"/>
+        <source>Introduce the name who are you searching for</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.ui" line="262"/>
+        <source>Change View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.ui" line="281"/>
+        <source>Toggle Favourite</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.cpp" line="52"/>
+        <location filename="downloadedwidget.cpp" line="194"/>
+        <source>Showing all</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.cpp" line="139"/>
+        <source>Info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.cpp" line="139"/>
+        <source>Nombre: %1
+URL: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.cpp" line="157"/>
+        <source>Caducada</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.cpp" line="157"/>
+        <source>Esta imagen ha caducado y no se puede abrir.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.cpp" line="193"/>
+        <source>Showing favourites</source>
+        <translation type="unfinished"></translation>
+=======
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.ui" line="74"/>
+        <source>Downloaded       </source>
+        <translation>Descargados       </translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.ui" line="114"/>
+        <source>lorem ipsum.png      </source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.ui" line="142"/>
+        <source>Show Favorites</source>
+        <translation>Filtrar Favoritos</translation>
+    </message>
+    <message>
+        <location filename="downloadedwidget.ui" line="346"/>
+        <source>Introduce the name who are you searching for</source>
+        <translation>Introduce el nombre para buscar</translation>
+>>>>>>> 22891d2 (barra de progreso y añadido la funcion multihilos para que funcione todo por separado)
+    </message>
+</context>
+<context>
+    <name>ImageCardDelegate</name>
+    <message>
+        <location filename="imagecarddelegate.ui" line="14"/>
+        <source>Form</source>
+<<<<<<< HEAD
+        <translation type="unfinished"></translation>
+=======
+        <translation></translation>
+>>>>>>> 22891d2 (barra de progreso y añadido la funcion multihilos para que funcione todo por separado)
+    </message>
+</context>
+<context>
+    <name>ImageViewer</name>
+    <message>
+        <location filename="imageviewer.ui" line="14"/>
+        <source>Form</source>
+<<<<<<< HEAD
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="imageviewer.ui" line="72"/>
+        <source>lorem impsum.png</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="imageviewer.ui" line="103"/>
+        <source>lorem ipsum is a picture</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="imageviewer.cpp" line="40"/>
+        <source>Visor de Imagen</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="imageviewer.cpp" line="68"/>
+        <source>No se pudo cargar el archivo de imagen</source>
+        <translation type="unfinished"></translation>
+=======
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="imageviewer.ui" line="70"/>
+        <source>lorem impsum.png</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="imageviewer.ui" line="100"/>
+        <source>lorem ipsum is a picture</source>
+        <translation></translation>
+>>>>>>> 22891d2 (barra de progreso y añadido la funcion multihilos para que funcione todo por separado)
+    </message>
+</context>
+<context>
+    <name>MainWindow</name>
+    <message>
+        <location filename="mainwindow.ui" line="14"/>
+        <source>MainWindow</source>
+<<<<<<< HEAD
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="38"/>
+        <source>Gallery</source>
+        <translation type="unfinished"></translation>
+=======
+        <translation>Suite</translation>
+>>>>>>> 22891d2 (barra de progreso y añadido la funcion multihilos para que funcione todo por separado)
+    </message>
+</context>
+</TS>

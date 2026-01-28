@@ -1,0 +1,33 @@
+[
+    {
+        "descargada": true,
+<<<<<<< HEAD
+        "descripcion": "Tranvia rojo entre arboles en otoño",
+        "favorito": false,
+        "nombre": "Tranvia entre arboles",
+        "url": "images/tranvia.jpeg"
+    },
+    {
+        "descargada": true,
+        "descripcion": "Paisaje de montaña",
+        "favorito": false,
+        "nombre": "Paisaje Montaña",
+        "url": "images/montaña.jpeg"
+    },
+    {
+        "descargada": true,
+=======
+>>>>>>> 22891d2 (barra de progreso y añadido la funcion multihilos para que funcione todo por separado)
+        "descripcion": "Un cuadrado rojo simple",
+        "favorito": false,
+        "nombre": "Cuadrado Rojo",
+        "url": "images/test.png"
+    },
+    {
+        "descargada": true,
+        "descripcion": "Un fondo de pantalla de windows",
+        "favorito": false,
+        "nombre": "Fondo de pantalla windows",
+        "url": "images/wallpaper"
+    }
+]
